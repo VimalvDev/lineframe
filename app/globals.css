@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-app-bg: #0D1114;
+  --color-app-surface: #11161A;
+  --color-app-surface-raised: #161C20;
+  --color-panel: #171C20;
+  --color-panel-elevated: #1B2126;
+
+  --color-panel-border: #292F35;
+  --color-panel-border-subtle: #22282D;
+
+  --color-canvas-stage: #0B0F12;
+  --color-canvas-bg: #E8E8E8;
+  --color-paper: #F7F7F7;
+
+  --color-text-primary: #F2F4F5;
+  --color-text-secondary: #A7AFB6;
+  --color-text-muted: #707980;
+  --color-text-disabled: #4C555C;
+
+  --color-accent: #2563EB;
+  --color-accent-hover: #3B82F6;
+  --color-accent-active: #1D4ED8;
+  --color-accent-soft: #152C55;
+
+  --color-grid: #FF4545;
+  --color-grid-soft: #FF6B6B;
+
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+
+  --color-input: #14191D;
+  --color-input-hover: #1A2025;
+  --color-input-border: #2B3238;
+
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --radius-button: 6px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #0a0a0a; /* Neutral-950 base */
+  color: #e5e5e5;            /* Neutral-200 text */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #333;
+  border-radius: 9999px;
 }
