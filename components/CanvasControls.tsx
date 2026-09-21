@@ -7,7 +7,7 @@ import { useGridStore, getEffectivePaperDimensions } from '@/store/useGridStore'
 const MM_TO_PX = 3.7795;
 
 export default function CanvasControls() {
-  const { zoom, isPanMode, setZoom, setPan, setPanMode } = useViewportStore();
+  const { zoom, interactionMode, setZoom, setPan, setInteractionMode } = useViewportStore();
   const activePaper = useGridStore((s) => s.activePaper);
   const customPresets = useGridStore((s) => s.customPresets);
 
@@ -55,8 +55,8 @@ export default function CanvasControls() {
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl text-neutral-300">
       <button 
-        onClick={() => setPanMode(!isPanMode)}
-        className={`p-2 rounded transition-colors ${isPanMode ? 'bg-blue-600/20 text-blue-500' : 'hover:bg-neutral-800'}`}
+        onClick={() => setInteractionMode(interactionMode === 'pan' ? 'move' : 'pan')}
+        className={`p-2 rounded transition-colors ${interactionMode === 'pan' ? 'bg-blue-600/20 text-blue-500' : 'hover:bg-neutral-800'}`}
         title="Pan (Hold Space)"
       >
         <Hand size={16} />

@@ -61,6 +61,7 @@ export interface ImageState {
   scale: number;
   panXMm: number;
   panYMm: number;
+  isAspectRatioLocked: boolean;
   
   rotation: number;
   flipH: boolean;
@@ -98,6 +99,8 @@ export interface GridConfig {
   
   majorLineFrequency: number;
   centerLines: boolean;
+  snapToGrid: boolean;
+  snapToPaper: boolean;
 }
 
 export interface GridStore {
@@ -150,6 +153,7 @@ const defaultImage: ImageState = {
   scale: 1,
   panXMm: 0,
   panYMm: 0,
+  isAspectRatioLocked: true,
   rotation: 0,
   flipH: false,
   flipV: false,
@@ -179,6 +183,8 @@ const defaultGrid: GridConfig = {
   labelPosition: 'top-left',
   majorLineFrequency: 0,
   centerLines: false,
+  snapToGrid: false,
+  snapToPaper: true,
 };
 
 const defaultPaper: ActivePaperState = {

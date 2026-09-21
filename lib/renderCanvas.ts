@@ -53,43 +53,43 @@ export function drawSheet(
     }
     
     const isRotated = image.rotation === 90 || image.rotation === 270;
-    const natW = isRotated ? image.naturalHeightPx : image.naturalWidthPx;
-    const natH = isRotated ? image.naturalWidthPx : image.naturalHeightPx;
     
-    const aspect = natW / natH;
-    const boxAspect = boxW / boxH;
+    // The dimensions of the clipping box *in the rotated local space*
+    const holeW = isRotated ? boxH : boxW;
+    const holeH = isRotated ? boxW : boxH;
     
-    let drawW = boxW;
-    let drawH = boxH;
+    const imgAspect = imgEl.naturalWidth / imgEl.naturalHeight;
+    const holeAspect = holeW / holeH;
     
-    drawW = boxW * image.scale;
-    drawH = boxH * image.scale;
+    let drawW = holeW;
+    let drawH = holeH;
     
     if (image.fitMode === 'crop-to-paper' || image.fitMode === 'cover') {
-      if (aspect > boxAspect) {
-        drawH = boxH * image.scale;
-        drawW = drawH * aspect;
+      if (imgAspect > holeAspect) {
+        drawH = holeH;
+        drawW = drawH * imgAspect;
       } else {
-        drawW = boxW * image.scale;
-        drawH = drawW / aspect;
+        drawW = holeW;
+        drawH = drawW / imgAspect;
       }
     } else if (image.fitMode === 'contain') {
-      if (aspect > boxAspect) {
-        drawW = boxW * image.scale;
-        drawH = drawW / aspect;
+      if (imgAspect > holeAspect) {
+        drawW = holeW;
+        drawH = drawW / imgAspect;
       } else {
-        drawH = boxH * image.scale;
-        drawW = drawH * aspect;
+        drawH = holeH;
+        drawW = drawH * imgAspect;
       }
     } else {
-      drawW = boxW * image.scale;
-      drawH = boxW / (isRotated ? (imgEl.naturalHeight / imgEl.naturalWidth) : (imgEl.naturalWidth / imgEl.naturalHeight));
+      // Original
+      drawW = imgEl.naturalWidth;
+      drawH = imgEl.naturalHeight;
     }
     
-    const finalDrawW = isRotated ? drawH : drawW;
-    const finalDrawH = isRotated ? drawW : drawH;
+    drawW *= image.scale;
+    drawH *= image.scale;
     
-    ctx.drawImage(imgEl, -finalDrawW / 2, -finalDrawH / 2, finalDrawW, finalDrawH);
+    ctx.drawImage(imgEl, -drawW / 2, -drawH / 2, drawW, drawH);
     ctx.filter = 'none';
     ctx.restore();
   }

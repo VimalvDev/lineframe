@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useGridStore, getEffectivePaperDimensions } from '@/store/useGridStore';
+import { useGridStore, getEffectivePaperDimensions, getCellSizeMm } from '@/store/useGridStore';
 import { useViewportStore } from '@/store/useViewportStore';
 import { drawSheet } from '@/lib/renderCanvas';
 import { Upload } from 'lucide-react';
@@ -78,6 +78,31 @@ export default function ViewportCanvas() {
 
       drawSheet(ctx, paperW, paperH, activePaper, customPresets, grid, image, imgElRef.current);
 
+      const { activeSnapLines } = useViewportStore.getState();
+      if (activeSnapLines.x !== null || activeSnapLines.y !== null) {
+        ctx.save();
+        ctx.strokeStyle = '#ef4444'; // Subtle red/orange for snapping
+        ctx.lineWidth = 1.5 / zoom;
+        ctx.setLineDash([4 / zoom, 4 / zoom]);
+        
+        const BASELINE_PX_PER_MM = 3.7795;
+        if (activeSnapLines.x !== null) {
+          ctx.beginPath();
+          ctx.moveTo(activeSnapLines.x * BASELINE_PX_PER_MM, -1000);
+          ctx.lineTo(activeSnapLines.x * BASELINE_PX_PER_MM, paperH + 1000);
+          ctx.stroke();
+        }
+        
+        if (activeSnapLines.y !== null) {
+          ctx.beginPath();
+          ctx.moveTo(-1000, activeSnapLines.y * BASELINE_PX_PER_MM);
+          ctx.lineTo(paperW + 1000, activeSnapLines.y * BASELINE_PX_PER_MM);
+          ctx.stroke();
+        }
+        
+        ctx.restore();
+      }
+
       ctx.restore();
       requestRef.current = requestAnimationFrame(render);
     };
@@ -128,10 +153,12 @@ export default function ViewportCanvas() {
     };
 
     const onPointerDown = (e: PointerEvent) => {
-      const { isPanMode, zoom, panX, panY } = useViewportStore.getState();
+      const { interactionMode, spacebarPanActive, zoom, panX, panY } = useViewportStore.getState();
       const state = useGridStore.getState();
       
-      if (e.button === 1 || e.button === 2 || isPanMode || e.shiftKey) {
+      const isActualPan = spacebarPanActive || interactionMode === 'pan';
+      
+      if (e.button === 1 || e.button === 2 || isActualPan || e.shiftKey) {
         isDragging = true;
         lastClientX = e.clientX;
         lastClientY = e.clientY;
@@ -139,26 +166,15 @@ export default function ViewportCanvas() {
         return;
       }
       
-      if (state.image.src) {
-        const rect = canvas.getBoundingClientRect();
-        const screenX = e.clientX - rect.left;
-        const screenY = e.clientY - rect.top;
-        
-        const worldX = (screenX - panX) / zoom;
-        const worldY = (screenY - panY) / zoom;
-        
-        const mmX = worldX / MM_TO_PX;
-        const mmY = worldY / MM_TO_PX;
-        
-        const img = state.image;
-        if (mmX >= img.xMm && mmX <= img.xMm + img.widthMm &&
-            mmY >= img.yMm && mmY <= img.yMm + img.heightMm) {
-          isDraggingImage = true;
-          lastClientX = e.clientX;
-          lastClientY = e.clientY;
-          canvas.style.cursor = 'move';
-        }
+      if (interactionMode === 'move' && state.image.src) {
+        isDraggingImage = true;
+        lastClientX = e.clientX;
+        lastClientY = e.clientY;
+        canvas.style.cursor = 'move';
+        return;
       }
+      
+
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -177,17 +193,105 @@ export default function ViewportCanvas() {
         const dxMm = (dx / zoom) / MM_TO_PX;
         const dyMm = (dy / zoom) / MM_TO_PX;
         
-        const img = useGridStore.getState().image;
-        useGridStore.getState().updateImage({ 
-          panXMm: img.panXMm + dxMm, 
-          panYMm: img.panYMm + dyMm 
+        const gridState = useGridStore.getState();
+        const img = gridState.image;
+        let newPanXMm = img.panXMm + dxMm;
+        let newPanYMm = img.panYMm + dyMm;
+        
+        // --- Magnetic Snapping ---
+        const { snapToGrid, snapToPaper } = gridState.grid;
+        if (snapToGrid || snapToPaper) {
+          const snapRadiusMm = 2; // 2mm physical tolerance
+          const { widthMm, heightMm } = getEffectivePaperDimensions(gridState.activePaper, gridState.customPresets);
+          const { top, right, bottom, left } = gridState.activePaper.margins;
+          
+          let snapTargetX: number | null = null;
+          let snapTargetY: number | null = null;
+          let minDistanceX = snapRadiusMm;
+          let minDistanceY = snapRadiusMm;
+
+          // Potential snap lines (X coordinates)
+          const snapLinesX: number[] = [];
+          // Potential snap lines (Y coordinates)
+          const snapLinesY: number[] = [];
+
+          if (snapToPaper) {
+             snapLinesX.push(0, widthMm / 2, widthMm);
+             snapLinesY.push(0, heightMm / 2, heightMm);
+          }
+
+          if (snapToGrid) {
+             const { cellWidthMm, cellHeightMm, usableW, usableH } = getCellSizeMm(gridState.activePaper, gridState.customPresets, gridState.grid);
+             
+             if (usableW > 0 && usableH > 0 && cellWidthMm > 0 && cellHeightMm > 0) {
+                // Add margins bounding box
+                snapLinesX.push(left, widthMm - right);
+                snapLinesY.push(top, heightMm - bottom);
+                
+                // Add column lines
+                for (let x = cellWidthMm; x < usableW - 0.1; x += cellWidthMm) {
+                   snapLinesX.push(left + x);
+                }
+                // Add row lines
+                for (let y = cellHeightMm; y < usableH - 0.1; y += cellHeightMm) {
+                   snapLinesY.push(top + y);
+                }
+                
+                if (gridState.grid.centerLines) {
+                   snapLinesX.push(left + usableW / 2);
+                   snapLinesY.push(top + usableH / 2);
+                }
+             }
+          }
+          
+          // Image center in paper coordinates
+          // By default panXMm and panYMm represents offset from center of paper
+          const imgCenterX = (widthMm / 2) + newPanXMm;
+          const imgCenterY = (heightMm / 2) + newPanYMm;
+
+          // Find closest X
+          for (const lineX of snapLinesX) {
+             const dist = Math.abs(imgCenterX - lineX);
+             if (dist < minDistanceX) {
+                minDistanceX = dist;
+                snapTargetX = lineX;
+             }
+          }
+          
+          // Find closest Y
+          for (const lineY of snapLinesY) {
+             const dist = Math.abs(imgCenterY - lineY);
+             if (dist < minDistanceY) {
+                minDistanceY = dist;
+                snapTargetY = lineY;
+             }
+          }
+
+          if (snapTargetX !== null) {
+             newPanXMm = snapTargetX - (widthMm / 2);
+          }
+          if (snapTargetY !== null) {
+             newPanYMm = snapTargetY - (heightMm / 2);
+          }
+          
+          useViewportStore.getState().setActiveSnapLines({ x: snapTargetX, y: snapTargetY });
+        } else {
+          useViewportStore.getState().setActiveSnapLines({ x: null, y: null });
+        }
+        
+        gridState.updateImage({ 
+          panXMm: newPanXMm, 
+          panYMm: newPanYMm 
         });
         lastClientX = e.clientX;
         lastClientY = e.clientY;
       } else {
-        const { isPanMode } = useViewportStore.getState();
-        if (isPanMode) {
+        const { interactionMode, spacebarPanActive } = useViewportStore.getState();
+        const isActualPan = spacebarPanActive || interactionMode === 'pan';
+        if (isActualPan) {
           canvas.style.cursor = 'grab';
+        } else if (interactionMode === 'move') {
+          canvas.style.cursor = 'move';
         } else {
           canvas.style.cursor = 'default';
         }
@@ -197,8 +301,16 @@ export default function ViewportCanvas() {
     const onPointerUp = () => {
       isDragging = false;
       isDraggingImage = false;
-      const { isPanMode } = useViewportStore.getState();
-      canvas.style.cursor = isPanMode ? 'grab' : 'default';
+      useViewportStore.getState().setActiveSnapLines({ x: null, y: null });
+      const { interactionMode, spacebarPanActive } = useViewportStore.getState();
+      const isActualPan = spacebarPanActive || interactionMode === 'pan';
+      if (isActualPan) {
+        canvas.style.cursor = 'grab';
+      } else if (interactionMode === 'move') {
+        canvas.style.cursor = 'move';
+      } else {
+        canvas.style.cursor = 'default';
+      }
     };
 
     const onTouchStart = (e: TouchEvent) => {
@@ -312,14 +424,15 @@ export default function ViewportCanvas() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-        useViewportStore.getState().setPanMode(true);
+        useViewportStore.getState().setSpacebarPanActive(true);
         if (canvasRef.current) canvasRef.current.style.cursor = 'grab';
       }
     };
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
-        useViewportStore.getState().setPanMode(false);
-        if (canvasRef.current) canvasRef.current.style.cursor = 'default';
+        useViewportStore.getState().setSpacebarPanActive(false);
+        const { interactionMode } = useViewportStore.getState();
+        if (canvasRef.current) canvasRef.current.style.cursor = interactionMode === 'pan' ? 'grab' : 'default';
       }
     };
     window.addEventListener('keydown', onKeyDown);
