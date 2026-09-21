@@ -13,6 +13,10 @@ import {
   getCellSizeMm,
   getCanvasPixelSize,
   getEffectivePaperDimensions,
+  getProjectSnapshot,
+  defaultPaper,
+  defaultGrid,
+  defaultImage,
   type FitMode,
   type Orientation,
   type Dpi
@@ -105,6 +109,16 @@ export default function Home() {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  useEffect(() => {
+    if (!activeProjectId) return;
+    const timeout = setTimeout(() => {
+      const state = useGridStore.getState();
+      const snap = getProjectSnapshot(state);
+      saveCurrentProject(snap, snap.image.src || undefined);
+    }, 1500);
+    return () => clearTimeout(timeout);
+  }, [activeProjectId, activePaper, customPresets, dpi, measurementUnit, image, grid, saveCurrentProject]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -724,40 +738,41 @@ export default function Home() {
           <div className="space-y-4">
             <button 
               onClick={async () => {
-                const snapshot = useGridStore.getState();
-                const tn = snapshot.image.src || undefined;
-                await createProject('Untitled Project', snapshot, tn);
+                useGridStore.setState({ activePaper: defaultPaper, grid: defaultGrid, image: defaultImage });
+                const snapshot = getProjectSnapshot(useGridStore.getState());
+                await createProject('Untitled Project', snapshot, undefined);
               }}
-              className="w-full py-2 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors mb-4"
+              className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-accent-fg)] text-xs font-medium transition-colors mb-6 shadow-sm"
             >
               New Project
             </button>
 
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Recent Projects</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">Recent Projects</h3>
               <button 
                 onClick={async () => {
-                  const snapshot = useGridStore.getState();
-                  await saveCurrentProject(snapshot, snapshot.image.src || undefined);
+                  const state = useGridStore.getState();
+                  const snap = getProjectSnapshot(state);
+                  await saveCurrentProject(snap, snap.image.src || undefined);
                 }}
                 disabled={!activeProjectId}
-                className="text-[10px] text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                className="text-[10px] text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
               >
                 Save Current
               </button>
             </div>
 
             {projects.length === 0 ? (
-              <div className="py-8 text-center text-xs text-neutral-500">
+              <div className="py-8 text-center text-xs text-[var(--color-text-muted)] border border-dashed border-[var(--color-panel-border)] rounded-[var(--radius-panel)] bg-[var(--color-app-surface)]">
                 No local projects yet.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {projects.map((p) => (
-                  <div key={p.id} className={`p-2 rounded border transition-colors group ${activeProjectId === p.id ? 'bg-neutral-800 border-neutral-600' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'}`}>
+                  <div key={p.id} className={`p-2 rounded-[var(--radius-panel)] border transition-colors group ${activeProjectId === p.id ? 'bg-[var(--color-accent-soft)] border-[var(--color-accent)]' : 'bg-[var(--color-app-surface)] border-[var(--color-panel-border)] hover:border-[var(--color-panel-border-subtle)]'}`}>
                     <div className="flex gap-3">
                       <div 
-                        className="w-12 h-12 bg-neutral-950 rounded border border-neutral-800 flex-shrink-0 cursor-pointer overflow-hidden bg-contain bg-center bg-no-repeat"
+                        className="w-12 h-12 bg-[var(--color-app-bg)] rounded-[var(--radius-control)] border border-[var(--color-panel-border-subtle)] flex-shrink-0 cursor-pointer overflow-hidden bg-contain bg-center bg-no-repeat transition-transform hover:scale-105"
                         style={{ backgroundImage: p.thumbnail ? `url(${p.thumbnail})` : 'none' }}
                         onClick={async () => {
                           const snapshot = await loadProject(p.id);
@@ -772,16 +787,16 @@ export default function Home() {
                             onBlur={(e) => {
                               if (e.target.value !== p.name) renameProject(p.id, e.target.value);
                             }}
-                            className="bg-transparent text-xs text-neutral-200 outline-none w-full truncate border-b border-transparent focus:border-neutral-600"
+                            className="bg-transparent text-xs font-medium text-[var(--color-text-primary)] outline-none w-full truncate border-b border-transparent focus:border-[var(--color-accent)] transition-colors"
                           />
                         </div>
-                        <div className="text-[9px] text-neutral-500 mt-0.5">
+                        <div className="text-[9px] text-[var(--color-text-muted)] mt-0.5">
                           {new Date(p.updatedAt).toLocaleDateString()}
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => duplicateProject(p.id)} className="p-1 rounded hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200" title="Duplicate"><Copy size={12}/></button>
-                        <button onClick={() => deleteProject(p.id)} className="p-1 rounded hover:bg-red-900/30 text-neutral-500 hover:text-red-400" title="Delete"><Trash2 size={12}/></button>
+                        <button onClick={() => duplicateProject(p.id)} className="p-1 rounded-[var(--radius-button)] hover:bg-[var(--color-panel-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors" title="Duplicate"><Copy size={12}/></button>
+                        <button onClick={() => deleteProject(p.id)} className="p-1 rounded-[var(--radius-button)] hover:bg-red-950/50 text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors" title="Delete"><Trash2 size={12}/></button>
                       </div>
                     </div>
                   </div>

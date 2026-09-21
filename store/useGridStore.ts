@@ -141,7 +141,20 @@ export interface GridStore {
   loadSnapshot: (snapshot: Partial<GridStore>) => void;
 }
 
-const defaultImage: ImageState = {
+export type SerializableProjectState = Pick<GridStore, 'activePaper' | 'customPresets' | 'dpi' | 'measurementUnit' | 'image' | 'grid'>;
+
+export function getProjectSnapshot(state: GridStore): SerializableProjectState {
+  return {
+    activePaper: state.activePaper,
+    customPresets: state.customPresets,
+    dpi: state.dpi,
+    measurementUnit: state.measurementUnit,
+    image: state.image,
+    grid: state.grid
+  };
+}
+
+export const defaultImage: ImageState = {
   src: null,
   filename: '',
   naturalWidthPx: 0,
@@ -167,7 +180,7 @@ const defaultImage: ImageState = {
   fitMode: 'contain',
 };
 
-const defaultGrid: GridConfig = {
+export const defaultGrid: GridConfig = {
   mode: 'count',
   columns: 5,
   rows: 5,
@@ -187,7 +200,7 @@ const defaultGrid: GridConfig = {
   snapToPaper: true,
 };
 
-const defaultPaper: ActivePaperState = {
+export const defaultPaper: ActivePaperState = {
   presetId: 'A4',
   orientation: 'portrait',
   margins: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -368,12 +381,18 @@ export const useGridStore = create<GridStore>()(
         },
 
         loadImageFile: (file) => {
-          const url = URL.createObjectURL(file);
-          const img = new Image();
-          img.onload = () => {
-            get().setImageSrc(url, file.name, img.naturalWidth, img.naturalHeight);
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target?.result as string;
+            if (!dataUrl) return;
+            
+            const img = new Image();
+            img.onload = () => {
+              get().setImageSrc(dataUrl, file.name, img.naturalWidth, img.naturalHeight);
+            };
+            img.src = dataUrl;
           };
-          img.src = url;
+          reader.readAsDataURL(file);
         },
 
         updateImage: (patch) => set((s) => ({ image: { ...s.image, ...patch } })),

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import localforage from 'localforage';
 import { v4 as uuidv4 } from 'uuid';
-import type { GridStore } from './useGridStore';
+import type { SerializableProjectState } from './useGridStore';
 
 export interface ProjectMetadata {
   id: string;
@@ -11,7 +11,7 @@ export interface ProjectMetadata {
 }
 
 export interface Project extends ProjectMetadata {
-  snapshot: Partial<GridStore>;
+  snapshot: SerializableProjectState;
 }
 
 interface ProjectStore {
@@ -20,9 +20,9 @@ interface ProjectStore {
   isLoading: boolean;
   
   loadProjects: () => Promise<void>;
-  createProject: (name: string, snapshot: Partial<GridStore>, thumbnail?: string) => Promise<string>;
-  saveCurrentProject: (snapshot: Partial<GridStore>, thumbnail?: string) => Promise<void>;
-  loadProject: (id: string) => Promise<Partial<GridStore> | null>;
+  createProject: (name: string, snapshot: SerializableProjectState, thumbnail?: string) => Promise<string>;
+  saveCurrentProject: (snapshot: SerializableProjectState, thumbnail?: string) => Promise<void>;
+  loadProject: (id: string) => Promise<SerializableProjectState | null>;
   renameProject: (id: string, newName: string) => Promise<void>;
   duplicateProject: (id: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
