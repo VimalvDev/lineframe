@@ -103,6 +103,44 @@ export default function ViewportCanvas() {
         ctx.restore();
       }
 
+      // Draw image selection bounding box + resize handles
+      if (image.src && imgElRef.current) {
+        const boxX = image.xMm * MM_TO_PX;
+        const boxY = image.yMm * MM_TO_PX;
+        const boxW = image.widthMm * MM_TO_PX;
+        const boxH = image.heightMm * MM_TO_PX;
+
+        ctx.save();
+        ctx.strokeStyle = '#2563EB';
+        ctx.lineWidth = 1.5 / zoom;
+        ctx.setLineDash([]);
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+        // Handle size in screen-space (constant regardless of zoom)
+        const hs = 6 / zoom; // half-size of handle square
+
+        const handles = [
+          { x: boxX,          y: boxY },            // top-left
+          { x: boxX + boxW/2, y: boxY },            // top-center
+          { x: boxX + boxW,   y: boxY },            // top-right
+          { x: boxX + boxW,   y: boxY + boxH/2 },   // middle-right
+          { x: boxX + boxW,   y: boxY + boxH },      // bottom-right
+          { x: boxX + boxW/2, y: boxY + boxH },      // bottom-center
+          { x: boxX,          y: boxY + boxH },       // bottom-left
+          { x: boxX,          y: boxY + boxH/2 },     // middle-left
+        ];
+
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#2563EB';
+        ctx.lineWidth = 1.5 / zoom;
+        for (const h of handles) {
+          ctx.fillRect(h.x - hs, h.y - hs, hs * 2, hs * 2);
+          ctx.strokeRect(h.x - hs, h.y - hs, hs * 2, hs * 2);
+        }
+
+        ctx.restore();
+      }
+
       ctx.restore();
       requestRef.current = requestAnimationFrame(render);
     };
@@ -121,6 +159,11 @@ export default function ViewportCanvas() {
     let lastClientY = 0;
     
     let isDraggingImage = false;
+    let isResizingImage = false;
+    let resizeHandleIndex = -1; // 0-7 for 8 handles (TL, TC, TR, MR, BR, BC, BL, ML)
+    let resizeStartImage = { xMm: 0, yMm: 0, widthMm: 0, heightMm: 0 };
+    let resizeStartClientX = 0;
+    let resizeStartClientY = 0;
 
     let initialTouchDistance = 0;
     let initialTouchMidX = 0;
@@ -128,6 +171,66 @@ export default function ViewportCanvas() {
     let initialZoom = 1;
     let initialPanX = 0;
     let initialPanY = 0;
+
+    // Helper: convert client coords to paper mm coords
+    const clientToPaperMm = (clientX: number, clientY: number) => {
+      const rect = canvas.getBoundingClientRect();
+      const { zoom, panX, panY } = useViewportStore.getState();
+      const canvasX = clientX - rect.left;
+      const canvasY = clientY - rect.top;
+      const paperPxX = (canvasX - panX) / zoom;
+      const paperPxY = (canvasY - panY) / zoom;
+      return { mmX: paperPxX / MM_TO_PX, mmY: paperPxY / MM_TO_PX };
+    };
+
+    // Helper: check if a point hits a resize handle (returns handle index or -1)
+    const hitTestHandles = (clientX: number, clientY: number): number => {
+      const state = useGridStore.getState();
+      const img = state.image;
+      if (!img.src) return -1;
+
+      const { zoom, panX, panY } = useViewportStore.getState();
+      const rect = canvas.getBoundingClientRect();
+      const cx = clientX - rect.left;
+      const cy = clientY - rect.top;
+
+      const boxX = img.xMm * MM_TO_PX;
+      const boxY = img.yMm * MM_TO_PX;
+      const boxW = img.widthMm * MM_TO_PX;
+      const boxH = img.heightMm * MM_TO_PX;
+
+      const handles = [
+        { x: boxX,          y: boxY },
+        { x: boxX + boxW/2, y: boxY },
+        { x: boxX + boxW,   y: boxY },
+        { x: boxX + boxW,   y: boxY + boxH/2 },
+        { x: boxX + boxW,   y: boxY + boxH },
+        { x: boxX + boxW/2, y: boxY + boxH },
+        { x: boxX,          y: boxY + boxH },
+        { x: boxX,          y: boxY + boxH/2 },
+      ];
+
+      const hitRadius = 8 / zoom; // tolerance in paper-pixel space
+      for (let i = 0; i < handles.length; i++) {
+        const hScreenX = handles[i].x * zoom + panX;
+        const hScreenY = handles[i].y * zoom + panY;
+        if (Math.abs(cx - hScreenX) < hitRadius * zoom && Math.abs(cy - hScreenY) < hitRadius * zoom) {
+          return i;
+        }
+      }
+      return -1;
+    };
+
+    // Helper: check if point is inside image bounding box
+    const hitTestImageBox = (clientX: number, clientY: number): boolean => {
+      const state = useGridStore.getState();
+      const img = state.image;
+      if (!img.src) return false;
+      const { mmX, mmY } = clientToPaperMm(clientX, clientY);
+      return mmX >= img.xMm && mmX <= img.xMm + img.widthMm && mmY >= img.yMm && mmY <= img.yMm + img.heightMm;
+    };
+
+    const HANDLE_CURSORS = ['nwse-resize', 'ns-resize', 'nesw-resize', 'ew-resize', 'nwse-resize', 'ns-resize', 'nesw-resize', 'ew-resize'];
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -165,6 +268,35 @@ export default function ViewportCanvas() {
         canvas.style.cursor = 'grabbing';
         return;
       }
+
+      // Check resize handles first
+      if (state.image.src) {
+        const handleIdx = hitTestHandles(e.clientX, e.clientY);
+        if (handleIdx >= 0) {
+          isResizingImage = true;
+          resizeHandleIndex = handleIdx;
+          resizeStartImage = {
+            xMm: state.image.xMm,
+            yMm: state.image.yMm,
+            widthMm: state.image.widthMm,
+            heightMm: state.image.heightMm,
+          };
+          resizeStartClientX = e.clientX;
+          resizeStartClientY = e.clientY;
+          canvas.style.cursor = HANDLE_CURSORS[handleIdx];
+          useGridStore.temporal.getState().pause();
+          return;
+        }
+
+        // Check if clicking inside image box → move image
+        if (hitTestImageBox(e.clientX, e.clientY)) {
+          isDraggingImage = true;
+          lastClientX = e.clientX;
+          lastClientY = e.clientY;
+          canvas.style.cursor = 'move';
+          return;
+        }
+      }
       
       if (interactionMode === 'move' && state.image.src) {
         isDraggingImage = true;
@@ -174,7 +306,6 @@ export default function ViewportCanvas() {
         return;
       }
       
-
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -185,6 +316,70 @@ export default function ViewportCanvas() {
         useViewportStore.getState().setPan(panX + dx, panY + dy);
         lastClientX = e.clientX;
         lastClientY = e.clientY;
+      } else if (isResizingImage) {
+        const { zoom } = useViewportStore.getState();
+        const dxPx = e.clientX - resizeStartClientX;
+        const dyPx = e.clientY - resizeStartClientY;
+        const dxMm = (dxPx / zoom) / MM_TO_PX;
+        const dyMm = (dyPx / zoom) / MM_TO_PX;
+
+        const s = resizeStartImage;
+        const aspect = s.widthMm / s.heightMm;
+        let newX = s.xMm, newY = s.yMm, newW = s.widthMm, newH = s.heightMm;
+
+        // Handle index: 0=TL, 1=TC, 2=TR, 3=MR, 4=BR, 5=BC, 6=BL, 7=ML
+        switch (resizeHandleIndex) {
+          case 0: { // TL - proportional
+            const d = (-dxMm + -dyMm) / 2;
+            newW = Math.max(5, s.widthMm + d);
+            newH = newW / aspect;
+            newX = s.xMm + s.widthMm - newW;
+            newY = s.yMm + s.heightMm - newH;
+            break;
+          }
+          case 1: { // TC
+            newH = Math.max(5, s.heightMm - dyMm);
+            newY = s.yMm + s.heightMm - newH;
+            break;
+          }
+          case 2: { // TR - proportional
+            const d = (dxMm + -dyMm) / 2;
+            newW = Math.max(5, s.widthMm + d);
+            newH = newW / aspect;
+            newY = s.yMm + s.heightMm - newH;
+            break;
+          }
+          case 3: { // MR
+            newW = Math.max(5, s.widthMm + dxMm);
+            break;
+          }
+          case 4: { // BR - proportional
+            const d = (dxMm + dyMm) / 2;
+            newW = Math.max(5, s.widthMm + d);
+            newH = newW / aspect;
+            break;
+          }
+          case 5: { // BC
+            newH = Math.max(5, s.heightMm + dyMm);
+            break;
+          }
+          case 6: { // BL - proportional
+            const d = (-dxMm + dyMm) / 2;
+            newW = Math.max(5, s.widthMm + d);
+            newH = newW / aspect;
+            newX = s.xMm + s.widthMm - newW;
+            break;
+          }
+          case 7: { // ML
+            newW = Math.max(5, s.widthMm - dxMm);
+            newX = s.xMm + s.widthMm - newW;
+            break;
+          }
+        }
+
+        useGridStore.getState().updateImage({
+          xMm: newX, yMm: newY, widthMm: newW, heightMm: newH,
+        });
       } else if (isDraggingImage) {
         const dx = e.clientX - lastClientX;
         const dy = e.clientY - lastClientY;
@@ -195,13 +390,15 @@ export default function ViewportCanvas() {
         
         const gridState = useGridStore.getState();
         const img = gridState.image;
-        let newPanXMm = img.panXMm + dxMm;
-        let newPanYMm = img.panYMm + dyMm;
         
+        // Move the bounding box position
+        let newXMm = img.xMm + dxMm;
+        let newYMm = img.yMm + dyMm;
+
         // --- Magnetic Snapping ---
         const { snapToGrid, snapToPaper } = gridState.grid;
         if (snapToGrid || snapToPaper) {
-          const snapRadiusMm = 2; // 2mm physical tolerance
+          const snapRadiusMm = 2;
           const { widthMm, heightMm } = getEffectivePaperDimensions(gridState.activePaper, gridState.customPresets);
           const { top, right, bottom, left } = gridState.activePaper.margins;
           
@@ -210,9 +407,7 @@ export default function ViewportCanvas() {
           let minDistanceX = snapRadiusMm;
           let minDistanceY = snapRadiusMm;
 
-          // Potential snap lines (X coordinates)
           const snapLinesX: number[] = [];
-          // Potential snap lines (Y coordinates)
           const snapLinesY: number[] = [];
 
           if (snapToPaper) {
@@ -224,15 +419,12 @@ export default function ViewportCanvas() {
              const { cellWidthMm, cellHeightMm, usableW, usableH } = getCellSizeMm(gridState.activePaper, gridState.customPresets, gridState.grid);
              
              if (usableW > 0 && usableH > 0 && cellWidthMm > 0 && cellHeightMm > 0) {
-                // Add margins bounding box
                 snapLinesX.push(left, widthMm - right);
                 snapLinesY.push(top, heightMm - bottom);
                 
-                // Add column lines
                 for (let x = cellWidthMm; x < usableW - 0.1; x += cellWidthMm) {
                    snapLinesX.push(left + x);
                 }
-                // Add row lines
                 for (let y = cellHeightMm; y < usableH - 0.1; y += cellHeightMm) {
                    snapLinesY.push(top + y);
                 }
@@ -244,12 +436,10 @@ export default function ViewportCanvas() {
              }
           }
           
-          // Image center in paper coordinates
-          // By default panXMm and panYMm represents offset from center of paper
-          const imgCenterX = (widthMm / 2) + newPanXMm;
-          const imgCenterY = (heightMm / 2) + newPanYMm;
+          // Center of the bounding box
+          const imgCenterX = newXMm + img.widthMm / 2;
+          const imgCenterY = newYMm + img.heightMm / 2;
 
-          // Find closest X
           for (const lineX of snapLinesX) {
              const dist = Math.abs(imgCenterX - lineX);
              if (dist < minDistanceX) {
@@ -258,7 +448,6 @@ export default function ViewportCanvas() {
              }
           }
           
-          // Find closest Y
           for (const lineY of snapLinesY) {
              const dist = Math.abs(imgCenterY - lineY);
              if (dist < minDistanceY) {
@@ -268,10 +457,10 @@ export default function ViewportCanvas() {
           }
 
           if (snapTargetX !== null) {
-             newPanXMm = snapTargetX - (widthMm / 2);
+             newXMm = snapTargetX - img.widthMm / 2;
           }
           if (snapTargetY !== null) {
-             newPanYMm = snapTargetY - (heightMm / 2);
+             newYMm = snapTargetY - img.heightMm / 2;
           }
           
           useViewportStore.getState().setActiveSnapLines({ x: snapTargetX, y: snapTargetY });
@@ -280,12 +469,25 @@ export default function ViewportCanvas() {
         }
         
         gridState.updateImage({ 
-          panXMm: newPanXMm, 
-          panYMm: newPanYMm 
+          xMm: newXMm,
+          yMm: newYMm
         });
         lastClientX = e.clientX;
         lastClientY = e.clientY;
       } else {
+        // Idle: update cursor based on hover
+        const state = useGridStore.getState();
+        if (state.image.src) {
+          const handleIdx = hitTestHandles(e.clientX, e.clientY);
+          if (handleIdx >= 0) {
+            canvas.style.cursor = HANDLE_CURSORS[handleIdx];
+            return;
+          }
+          if (hitTestImageBox(e.clientX, e.clientY)) {
+            canvas.style.cursor = 'move';
+            return;
+          }
+        }
         const { interactionMode, spacebarPanActive } = useViewportStore.getState();
         const isActualPan = spacebarPanActive || interactionMode === 'pan';
         if (isActualPan) {
@@ -299,18 +501,16 @@ export default function ViewportCanvas() {
     };
 
     const onPointerUp = () => {
+      if (isResizingImage) {
+        useGridStore.temporal.getState().resume();
+        useGridStore.getState().updateGrid({}); // trigger undo snapshot
+      }
       isDragging = false;
       isDraggingImage = false;
+      isResizingImage = false;
+      resizeHandleIndex = -1;
       useViewportStore.getState().setActiveSnapLines({ x: null, y: null });
-      const { interactionMode, spacebarPanActive } = useViewportStore.getState();
-      const isActualPan = spacebarPanActive || interactionMode === 'pan';
-      if (isActualPan) {
-        canvas.style.cursor = 'grab';
-      } else if (interactionMode === 'move') {
-        canvas.style.cursor = 'move';
-      } else {
-        canvas.style.cursor = 'default';
-      }
+      canvas.style.cursor = 'default';
     };
 
     const onTouchStart = (e: TouchEvent) => {

@@ -35,9 +35,11 @@
   --color-input-hover: #1A2025;
   --color-input-border: #2B3238;
 
-  --radius-control: 3px;
+  --radius-control: 6px;
+  --radius-input: 8px;
   --radius-panel: 0px;
-  --radius-button: 4px;
+  --radius-button: 6px;
+  --radius-floating: 12px;
 }
 
 html,

@@ -35,13 +35,13 @@ const NavItem = ({ id, icon: Icon, label, activeTab, onClick }: { id: Tab, icon:
   return (
     <button
       onClick={onClick}
-      className={`flex lg:flex-row flex-col items-center gap-1 lg:gap-3 lg:w-full lg:px-4 lg:py-3 transition-all duration-150 ease-out group ${isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}
+      className={`flex flex-col items-center gap-0.5 lg:gap-1 lg:w-full lg:py-2 transition-all duration-150 ease-out group ${isActive ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}
       aria-label={label}
     >
-      <div className={`relative flex items-center justify-center p-1.5 lg:p-2 rounded-[var(--radius-control)] transition-all duration-150 ease-out ${isActive ? 'bg-[var(--color-accent-soft)]' : 'group-hover:bg-[var(--color-app-surface-raised)]'}`}>
-        <Icon size={18} className="lg:w-5 lg:h-5" />
+      <div className={`relative flex items-center justify-center p-1.5 rounded-[var(--radius-control)] transition-all duration-150 ease-out ${isActive ? 'bg-[var(--color-accent-soft)]' : 'group-hover:bg-[var(--color-app-surface-raised)]'}`}>
+        <Icon size={18} />
       </div>
-      <span className={`text-[9px] lg:text-[11px] font-medium transition-colors duration-150 ease-out ${isActive ? 'text-[var(--color-text-primary)]' : ''}`}>{label}</span>
+      <span className={`text-[9px] font-medium transition-colors duration-150 ease-out leading-tight ${isActive ? 'text-[var(--color-text-primary)]' : ''}`}>{label}</span>
     </button>
   );
 };
@@ -205,14 +205,14 @@ export default function Home() {
         return (
           <div className="flex flex-col">
             {/* SOURCE */}
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">SOURCE</h3>
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} className="hidden" />
               
               {!image.src ? (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex flex-col items-center justify-center gap-2 rounded-[var(--radius-panel)] border border-dashed border-[var(--color-panel-border)] bg-transparent px-3 py-6 text-[10px] text-[var(--color-text-muted)] hover:bg-[var(--color-app-surface-raised)] hover:text-[var(--color-text-primary)] transition-colors"
+                  className="w-full flex flex-col items-center justify-center gap-2 rounded-[var(--radius-panel)] border border-dashed border-[var(--color-panel-border)] bg-transparent px-3 py-6 text-[12px] text-[var(--color-text-muted)] hover:bg-[var(--color-app-surface-raised)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
                   <Upload size={16} /> 
                   <span>Upload or Paste</span>
@@ -226,13 +226,13 @@ export default function Home() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="text-[11px] font-medium text-[var(--color-text-primary)] truncate transition-colors">{image.filename || 'Pasted Image'}</div>
-                      <div className="text-[10px] text-[var(--color-text-muted)] transition-colors">{image.naturalWidthPx} × {image.naturalHeightPx} px</div>
-                      <div className="text-[10px] text-[var(--color-text-muted)] transition-colors">{(image.naturalWidthPx / image.naturalHeightPx).toFixed(2)}:1</div>
+                      <div className="text-[12px] text-[var(--color-text-muted)] transition-colors">{image.naturalWidthPx} × {image.naturalHeightPx} px</div>
+                      <div className="text-[12px] text-[var(--color-text-muted)] transition-colors">{(image.naturalWidthPx / image.naturalHeightPx).toFixed(2)}:1</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                     <button onClick={() => fileInputRef.current?.click()} className="flex-1 py-1 text-[10px] bg-transparent border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[var(--color-text-primary)] transition-colors">Replace</button>
-                     <button onClick={clearImage} className="flex-1 py-1 text-[10px] bg-transparent border border-red-900/30 text-[var(--color-danger)] hover:bg-red-950/20 rounded-[var(--radius-button)] transition-colors">Remove</button>
+                     <button onClick={() => fileInputRef.current?.click()} className="flex-1 py-1 text-[12px] bg-transparent border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[var(--color-text-primary)] transition-colors">Replace</button>
+                     <button onClick={clearImage} className="flex-1 py-1 text-[12px] bg-transparent border border-red-900/30 text-[var(--color-danger)] hover:bg-red-950/20 rounded-[var(--radius-button)] transition-colors">Remove</button>
                   </div>
                 </div>
               )}
@@ -241,12 +241,12 @@ export default function Home() {
             {image.src && (
               <>
                 {/* FIT & CROP */}
-                <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+                <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
                   <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">FIT & CROP</h3>
                   <select
                     value={image.fitMode}
                     onChange={(e) => setFitMode(e.target.value as FitMode)}
-                    className="w-full bg-transparent border border-[var(--color-panel-border)] hover:border-[var(--color-panel-border-subtle)] rounded-[var(--radius-control)] px-2 py-1 text-[10px] text-[var(--color-text-primary)] cursor-pointer outline-none transition-colors"
+                    className="w-full bg-transparent border border-[var(--color-panel-border)] hover:border-[var(--color-panel-border-subtle)] rounded-[var(--radius-control)] px-2 py-1 text-[12px] text-[var(--color-text-primary)] cursor-pointer outline-none transition-colors"
                   >
                     <option value="original">Free Crop</option>
                     <option value="contain">Contain</option>
@@ -255,14 +255,14 @@ export default function Home() {
                   </select>
 
                   {!imageMatchesPaperAspect && image.fitMode === 'crop-to-paper' && (
-                    <div className="mt-2 text-[9px] text-amber-500/80 leading-tight transition-colors">
+                    <div className="mt-2 text-[11px] text-amber-500/80 leading-tight transition-colors">
                       Image aspect ratio does not match paper.
                     </div>
                   )}
                 </div>
 
                 {/* TRANSFORM */}
-                <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+                <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
                   <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">TRANSFORM</h3>
                   <div className="flex gap-1 bg-[var(--color-input)] p-0.5 rounded-[var(--radius-control)] border border-[var(--color-input-border)] transition-colors">
                     <button onClick={() => rotateImage('left')} className="flex-1 flex items-center justify-center py-1 rounded-[var(--radius-control)] bg-transparent hover:bg-[var(--color-app-surface-raised)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors" data-tooltip="Rotate Left"><RotateCcw size={14}/></button>
@@ -273,11 +273,11 @@ export default function Home() {
                 </div>
 
                 {/* IMAGE SCALE */}
-                <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+                <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
                   <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">IMAGE SCALE</h3>
                   <div className="flex items-end gap-2 mb-3">
                     <div className="flex-1">
-                      <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Width</label>
+                      <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Width</label>
                       <UnitInput 
                         unit={measurementUnit} dpi={dpi} min={1} 
                         valueMm={image.scale * (image.naturalWidthPx / 3.7795)} 
@@ -285,7 +285,7 @@ export default function Home() {
                           const newScale = v / (image.naturalWidthPx / 3.7795);
                           updateImage({ scale: newScale });
                         }} 
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-[10px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" 
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-[12px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" 
                       />
                     </div>
                     <button 
@@ -296,7 +296,7 @@ export default function Home() {
                       <Link2 size={14} />
                     </button>
                     <div className="flex-1">
-                      <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Height</label>
+                      <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Height</label>
                       <UnitInput 
                         unit={measurementUnit} dpi={dpi} min={1} 
                         valueMm={image.scale * (image.naturalHeightPx / 3.7795)} 
@@ -305,72 +305,72 @@ export default function Home() {
                           updateImage({ scale: newScale });
                         }} 
                         disabled={image.isAspectRatioLocked} 
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-[10px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors" 
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-[12px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors" 
                       />
                     </div>
                   </div>
-                  <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                  <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
                     <input
                       type="checkbox"
                       checked={image.isAspectRatioLocked}
                       onChange={(e) => updateImage({ isAspectRatioLocked: e.target.checked })}
-                      className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors"
+                      className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors"
                     />
                     Maintain aspect ratio
                   </label>
                 </div>
 
                 {/* POSITION */}
-                <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+                <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
                   <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">POSITION</h3>
                   <div className="flex gap-2 items-end mb-3">
                     <div className="flex-1">
-                      <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">X</label>
+                      <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">X</label>
                       <UnitInput 
                         unit={measurementUnit} dpi={dpi} 
                         valueMm={image.panXMm} 
                         onChangeMm={(v) => updateImage({ panXMm: v })} 
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-[10px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" 
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-[12px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" 
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Y</label>
+                      <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Y</label>
                       <UnitInput 
                         unit={measurementUnit} dpi={dpi} 
                         valueMm={image.panYMm} 
                         onChangeMm={(v) => updateImage({ panYMm: v })} 
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-[10px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" 
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-[12px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" 
                       />
                     </div>
                   </div>
                   <button 
                      onClick={() => updateImage({ panXMm: 0, panYMm: 0 })}
-                     className="w-full py-1 text-[10px] bg-[var(--color-app-surface-raised)] hover:bg-[var(--color-panel-border)] rounded-[var(--radius-button)] text-[var(--color-text-primary)] transition-colors"
+                     className="w-full py-1 text-[12px] bg-[var(--color-app-surface-raised)] hover:bg-[var(--color-panel-border)] rounded-[var(--radius-button)] text-[var(--color-text-primary)] transition-colors"
                   >
                      Center Image
                   </button>
                 </div>
 
                 {/* SNAPPING */}
-                <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+                <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
                   <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">SNAPPING</h3>
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
-                      <input type="checkbox" checked={grid.snapToGrid} onChange={(e) => updateGrid({ snapToGrid: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                    <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                      <input type="checkbox" checked={grid.snapToGrid} onChange={(e) => updateGrid({ snapToGrid: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                       Snap to grid
                     </label>
-                    <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
-                      <input type="checkbox" checked={grid.snapToPaper} onChange={(e) => updateGrid({ snapToPaper: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                    <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                      <input type="checkbox" checked={grid.snapToPaper} onChange={(e) => updateGrid({ snapToPaper: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                       Snap to paper edges
                     </label>
                   </div>
                 </div>
 
                 {/* RESET */}
-                <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+                <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
                   <button 
                      onClick={() => updateImage({ scale: 1, panXMm: 0, panYMm: 0, rotation: 0, flipH: false, flipV: false, fitMode: 'contain' })}
-                     className="w-full py-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] transition-colors"
+                     className="w-full py-1 text-[12px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] transition-colors"
                   >
                      Reset Image
                   </button>
@@ -382,80 +382,81 @@ export default function Home() {
       case 'grid':
         return (
           <div className="flex flex-col">
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] transition-colors">GRID</h3>
+                <h3 className="text-[14px] font-semibold text-[var(--color-text-primary)] capitalize transition-colors">GRID</h3>
                 <div className="flex bg-[var(--color-input)] p-0.5 rounded-[var(--radius-control)] border border-[var(--color-input-border)] transition-colors">
-                  <button onClick={() => useGridStore.getState().setGridMode('count')} className={`px-2 py-1 text-[10px] rounded-[var(--radius-control)] transition-colors ${grid.mode === 'count' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}>Count</button>
-                  <button onClick={() => useGridStore.getState().setGridMode('size')} className={`px-2 py-1 text-[10px] rounded-[var(--radius-control)] transition-colors ${grid.mode === 'size' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}>Size</button>
+                  <button onClick={() => useGridStore.getState().setGridMode('count')} className={`px-2 py-1 text-[12px] rounded-[var(--radius-control)] transition-colors ${grid.mode === 'count' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}>Count</button>
+                  <button onClick={() => useGridStore.getState().setGridMode('size')} className={`px-2 py-1 text-[12px] rounded-[var(--radius-control)] transition-colors ${grid.mode === 'size' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}>Size</button>
                 </div>
               </div>
 
               {grid.mode === 'count' ? (
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1">
-                    <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Columns</label>
-                    <input type="number" min={1} max={100} value={grid.columns} onChange={(e) => setColumns(Number(e.target.value))} className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" />
+                    <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Columns</label>
+                    <input type="number" min={1} max={100} value={grid.columns} onChange={(e) => setColumns(Number(e.target.value))} className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" />
                   </div>
                   <button onClick={toggleLinked} className={`mt-4 rounded-[var(--radius-control)] p-1 transition-colors ${grid.linked ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`} data-tooltip="Link Dimensions"><Link2 size={14} /></button>
                   <div className="flex-1">
-                    <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Rows</label>
-                    <input type="number" min={1} max={100} value={grid.rows} disabled={grid.linked} onChange={(e) => setRows(Number(e.target.value))} className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors" />
+                    <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Rows</label>
+                    <input type="number" min={1} max={100} value={grid.rows} disabled={grid.linked} onChange={(e) => setRows(Number(e.target.value))} className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors" />
                   </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mb-2">
                   <div className="flex-1">
-                    <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Width</label>
-                    <UnitInput unit={measurementUnit} dpi={dpi} valueMm={grid.cellWidthMm} onChangeMm={(v) => useGridStore.getState().setCellSize(v, grid.cellHeightMm)} className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" />
+                    <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Width</label>
+                    <UnitInput unit={measurementUnit} dpi={dpi} valueMm={grid.cellWidthMm} onChangeMm={(v) => useGridStore.getState().setCellSize(v, grid.cellHeightMm)} className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors" />
                   </div>
                   <button onClick={toggleLinked} className={`mt-4 rounded-[var(--radius-control)] p-1 transition-colors ${grid.linked ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent-hover)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`} data-tooltip="Link Dimensions"><Link2 size={14} /></button>
                   <div className="flex-1">
-                    <label className="mb-1 block text-[10px] text-[var(--color-text-muted)] transition-colors">Height</label>
-                    <UnitInput unit={measurementUnit} dpi={dpi} valueMm={grid.cellHeightMm} disabled={grid.linked || grid.forceSquare} onChangeMm={(v) => useGridStore.getState().setCellSize(grid.cellWidthMm, v)} className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors" />
+                    <label className="mb-1 block text-[12px] text-[var(--color-text-muted)] transition-colors">Height</label>
+                    <UnitInput unit={measurementUnit} dpi={dpi} valueMm={grid.cellHeightMm} disabled={grid.linked || grid.forceSquare} onChangeMm={(v) => useGridStore.getState().setCellSize(grid.cellWidthMm, v)} className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50 transition-colors" />
                   </div>
                 </div>
               )}
               
-              <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer mt-3 mb-4 transition-colors">
-                <input type="checkbox" checked={grid.forceSquare} onChange={useGridStore.getState().toggleForceSquare} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+              <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer mt-3 mb-4 transition-colors">
+                <input type="checkbox" checked={grid.forceSquare} onChange={useGridStore.getState().toggleForceSquare} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                 Square cells
               </label>
 
-              <div className="pt-3 border-t border-[var(--color-panel-border-subtle)] transition-colors">
-                <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-semibold mb-1 transition-colors">Cell Size</div>
+              <div className="pt-2 transition-colors">
+                <div className="text-[12px] text-[var(--color-text-muted)] uppercase tracking-widest font-semibold mb-1 transition-colors">Cell Size</div>
                 <div className="text-xl font-medium tracking-tight text-[var(--color-text-primary)] transition-colors">
                   {formatUnit(cellWidthMm, measurementUnit, dpi)} <span className="text-[var(--color-text-muted)] font-normal mx-1 transition-colors">×</span> {formatUnit(cellHeightMm, measurementUnit, dpi)} <span className="text-xs text-[var(--color-text-muted)] ml-1 transition-colors">{measurementUnit}</span>
                 </div>
                 {grid.mode === 'size' && (
-                  <div className="text-[9px] text-[var(--color-text-muted)] mt-1 transition-colors">
+                  <div className="text-[11px] text-[var(--color-text-muted)] mt-1 transition-colors">
                     Fills ~{((widthMm - activePaper.margins.left - activePaper.margins.right) / cellWidthMm).toFixed(1)} × ~{((heightMm - activePaper.margins.top - activePaper.margins.bottom) / cellHeightMm).toFixed(1)} cells
                   </div>
                 )}
                 {grid.mode === 'count' && grid.forceSquare && (
-                  <div className="text-[9px] text-[var(--color-text-muted)] mt-1 transition-colors">
+                  <div className="text-[11px] text-[var(--color-text-muted)] mt-1 transition-colors">
                     Unused vertical space: {formatUnit((heightMm - activePaper.margins.top - activePaper.margins.bottom) - (cellHeightMm * grid.rows), measurementUnit, dpi)} {measurementUnit}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] transition-colors">Appearance</h3>
-                <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] cursor-pointer transition-colors">
-                  <input type="checkbox" checked={grid.visible} onChange={(e) => updateGrid({ visible: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                <h3 className="text-[14px] font-semibold text-[var(--color-text-primary)] capitalize transition-colors">Appearance</h3>
+                <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] cursor-pointer transition-colors">
+                  <input type="checkbox" checked={grid.visible} onChange={(e) => updateGrid({ visible: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                   Visible
                 </label>
               </div>
               
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="relative w-7 h-7 rounded-[var(--radius-control)] border border-[var(--color-panel-border-subtle)] overflow-hidden shrink-0 transition-colors">
-                    <input type="color" value={grid.lineColor} onChange={(e) => updateGrid({ lineColor: e.target.value })} className="absolute -top-2 -left-2 w-12 h-12 cursor-pointer" />
-                  </div>
+                  <label className="flex items-center gap-3 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                    <input type="color" value={grid.lineColor} onChange={(e) => updateGrid({ lineColor: e.target.value })} className="w-6 h-6 p-0 border-0 rounded-full cursor-pointer overflow-hidden transition-colors bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-full" />
+                    Color
+                  </label>
                   <div className="flex-1">
-                    <div className="flex justify-between mb-1.5 text-[10px] text-[var(--color-text-muted)] transition-colors">
+                    <div className="flex justify-between mb-1.5 text-[12px] text-[var(--color-text-muted)] transition-colors">
                       <span>Opacity</span>
                       <span>{Math.round(grid.opacity * 100)}%</span>
                     </div>
@@ -467,7 +468,7 @@ export default function Home() {
                 </div>
                 
                 <div>
-                  <label className="flex justify-between mb-1.5 text-[10px] text-[var(--color-text-muted)] transition-colors">
+                  <label className="flex justify-between mb-1.5 text-[12px] text-[var(--color-text-muted)] transition-colors">
                     <span>Line Thickness</span>
                     <span>{grid.lineWidth} px</span>
                   </label>
@@ -477,65 +478,65 @@ export default function Home() {
                     onChange={(e) => updateGrid({ lineWidth: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] h-1 bg-[var(--color-input)] rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-text-primary)] [&::-webkit-slider-thumb]:rounded-full transition-colors" />
                 </div>
 
-                <div className="pt-4 mt-2 border-t border-[var(--color-panel-border-subtle)] transition-colors">
+                <div className="pt-2 mt-2 transition-colors">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] text-[var(--color-text-primary)] transition-colors">Major lines</span>
-                    <select value={grid.majorLineFrequency} onChange={(e) => updateGrid({ majorLineFrequency: Number(e.target.value) })} className="bg-transparent border border-transparent hover:border-[var(--color-panel-border)] rounded-[var(--radius-control)] px-1 py-0.5 text-[10px] text-[var(--color-text-primary)] cursor-pointer outline-none transition-colors">
+                    <span className="text-[12px] text-[var(--color-text-primary)] transition-colors">Major lines</span>
+                    <select value={grid.majorLineFrequency} onChange={(e) => updateGrid({ majorLineFrequency: Number(e.target.value) })} className="bg-transparent border border-transparent hover:border-[var(--color-panel-border)] rounded-[var(--radius-control)] px-1 py-0.5 text-[12px] text-[var(--color-text-primary)] cursor-pointer outline-none transition-colors">
                       <option value="0">Off</option>
                       <option value="5">Every 5</option>
                       <option value="10">Every 10</option>
                     </select>
                   </div>
-                  <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
-                    <input type="checkbox" checked={grid.centerLines} onChange={(e) => updateGrid({ centerLines: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                  <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                    <input type="checkbox" checked={grid.centerLines} onChange={(e) => updateGrid({ centerLines: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                     Center crosshair
                   </label>
                 </div>
               </div>
             </div>
 
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] transition-colors">Labels</h3>
-                <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] cursor-pointer transition-colors">
-                  <input type="checkbox" checked={grid.showLabels} onChange={(e) => updateGrid({ showLabels: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                <h3 className="text-[14px] font-semibold text-[var(--color-text-primary)] capitalize transition-colors">Labels</h3>
+                <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] cursor-pointer transition-colors">
+                  <input type="checkbox" checked={grid.showLabels} onChange={(e) => updateGrid({ showLabels: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                   Show labels
                 </label>
               </div>
               
               {grid.showLabels && (
                 <div className="flex gap-1 bg-[var(--color-input)] p-0.5 rounded-[var(--radius-control)] border border-[var(--color-input-border)] mt-3 transition-colors">
-                  <button onClick={() => updateGrid({ labelPosition: 'top-left' })} className={`flex-1 py-1 text-[9px] rounded-[var(--radius-control)] transition-colors ${grid.labelPosition === 'top-left' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}>Top Left</button>
-                  <button onClick={() => updateGrid({ labelPosition: 'center' })} className={`flex-1 py-1 text-[9px] rounded-[var(--radius-control)] transition-colors ${grid.labelPosition === 'center' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}>Center</button>
-                  <button onClick={() => updateGrid({ labelPosition: 'bottom-right' })} className={`flex-1 py-1 text-[9px] rounded-[var(--radius-control)] transition-colors ${grid.labelPosition === 'bottom-right' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}>Bottom Right</button>
+                  <button onClick={() => updateGrid({ labelPosition: 'top-left' })} className={`flex-1 py-1 text-[11px] rounded-[var(--radius-control)] transition-colors ${grid.labelPosition === 'top-left' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}>Top Left</button>
+                  <button onClick={() => updateGrid({ labelPosition: 'center' })} className={`flex-1 py-1 text-[11px] rounded-[var(--radius-control)] transition-colors ${grid.labelPosition === 'center' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}>Center</button>
+                  <button onClick={() => updateGrid({ labelPosition: 'bottom-right' })} className={`flex-1 py-1 text-[11px] rounded-[var(--radius-control)] transition-colors ${grid.labelPosition === 'bottom-right' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}>Bottom Right</button>
                 </div>
               )}
             </div>
 
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">Snapping</h3>
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
-                  <input type="checkbox" checked={grid.snapToGrid} onChange={(e) => updateGrid({ snapToGrid: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                  <input type="checkbox" checked={grid.snapToGrid} onChange={(e) => updateGrid({ snapToGrid: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                   Snap image to grid
                 </label>
-                <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
-                  <input type="checkbox" checked={grid.snapToPaper} onChange={(e) => updateGrid({ snapToPaper: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-input)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-primary)] cursor-pointer transition-colors">
+                  <input type="checkbox" checked={grid.snapToPaper} onChange={(e) => updateGrid({ snapToPaper: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                   Snap to paper edges
                 </label>
               </div>
             </div>
 
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] transition-colors">Unit</h3>
+                <h3 className="text-[14px] font-semibold text-[var(--color-text-primary)] capitalize transition-colors">Unit</h3>
                 <select 
                   value={measurementUnit} 
                   onChange={(e) => setMeasurementUnit(e.target.value as MeasurementUnit)}
-                  className="bg-transparent border border-transparent hover:border-[var(--color-panel-border)] rounded-[var(--radius-control)] px-1 py-0.5 text-[10px] text-[var(--color-text-primary)] cursor-pointer outline-none transition-colors"
+                  className="bg-transparent border border-transparent hover:border-[var(--color-panel-border)] rounded-[var(--radius-control)] px-1 py-0.5 text-[12px] text-[var(--color-text-primary)] cursor-pointer outline-none transition-colors"
                 >
-                  <option value="mm">mm</option>
                   <option value="cm">cm</option>
+                  <option value="mm">mm</option>
                   <option value="in">in</option>
                   <option value="px">px</option>
                 </select>
@@ -546,13 +547,13 @@ export default function Home() {
       case 'paper':
         return (
           <div className="flex flex-col">
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">Document Size</h3>
-              <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Preset</label>
+              <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Preset</label>
               <select
                 value={activePaper.presetId}
                 onChange={(e) => setPreset(e.target.value)}
-                className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors mb-3"
+                className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors mb-3"
               >
                 <optgroup label="Standard">
                   {PAPER_SIZES.map((p) => (
@@ -577,19 +578,19 @@ export default function Home() {
                 <div className="space-y-3 mb-3 pt-2">
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Width ({measurementUnit})</label>
+                      <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Width ({measurementUnit})</label>
                       <UnitInput
                         unit={measurementUnit} dpi={dpi} min={1} valueMm={activePaper.customWidthMm || 210}
                         onChangeMm={(v) => setCustomPaper(v, activePaper.customHeightMm || 297, activePaper.customName)}
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Height ({measurementUnit})</label>
+                      <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Height ({measurementUnit})</label>
                       <UnitInput
                         unit={measurementUnit} dpi={dpi} min={1} valueMm={activePaper.customHeightMm || 297}
                         onChangeMm={(v) => setCustomPaper(activePaper.customWidthMm || 210, v, activePaper.customName)}
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                       />
                     </div>
                   </div>
@@ -606,64 +607,64 @@ export default function Home() {
               <div className="flex items-center gap-1 bg-[var(--color-app-surface)] p-1 rounded-[var(--radius-control)] border border-[var(--color-panel-border)] mt-1 transition-colors">
                  <button
                     onClick={() => setOrientation('portrait')}
-                    className={`flex-1 py-1 text-[10px] uppercase font-medium rounded-[var(--radius-control)] transition-colors ${activePaper.orientation === 'portrait' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
+                    className={`flex-1 py-1 text-[12px] uppercase font-medium rounded-[var(--radius-control)] transition-colors ${activePaper.orientation === 'portrait' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
                  >
                    Portrait
                  </button>
                  <button
                     onClick={() => setOrientation('landscape')}
-                    className={`flex-1 py-1 text-[10px] uppercase font-medium rounded-[var(--radius-control)] transition-colors ${activePaper.orientation === 'landscape' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
+                    className={`flex-1 py-1 text-[12px] uppercase font-medium rounded-[var(--radius-control)] transition-colors ${activePaper.orientation === 'landscape' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
                  >
                    Landscape
                  </button>
               </div>
             </div>
             
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">Margins</h3>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Top ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Top ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.top}
                     onChangeMm={(v) => setMargins({ top: v })}
-                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Bottom ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Bottom ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.bottom}
                     onChangeMm={(v) => setMargins({ bottom: v })}
-                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Left ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Left ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.left}
                     onChangeMm={(v) => setMargins({ left: v })}
-                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Right ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Right ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.right}
                     onChangeMm={(v) => setMargins({ right: v })}
-                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pb-5 mb-5 border-b border-[var(--color-panel-border-subtle)] last:border-b-0 last:pb-0 last:mb-0 transition-colors">
+            <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">Export Settings</h3>
-              <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)]  transition-colors">Resolution</label>
+              <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Resolution</label>
               <select
                 value={dpi}
                 onChange={(e) => setDpi(Number(e.target.value) as Dpi)}
-                className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
               >
                 <option value={72}>72 DPI (Web)</option>
                 <option value={150}>150 DPI (Draft Print)</option>
@@ -679,15 +680,15 @@ export default function Home() {
             {!image.src ? (
               <div className="p-4 bg-[var(--color-app-surface)] border border-[var(--color-panel-border)] rounded-[var(--radius-panel)] text-center transition-colors">
                 <SlidersHorizontal size={24} className="mx-auto text-[var(--color-text-muted)] mb-2 transition-colors" />
-                <p className="text-[10px] text-[var(--color-text-muted)] transition-colors">Load an image to apply adjustments.</p>
+                <p className="text-[12px] text-[var(--color-text-muted)] transition-colors">Load an image to apply adjustments.</p>
               </div>
             ) : (
               <>
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xs font-semibold text-[var(--color-text-primary)]  transition-colors">Black & White</h3>
-                    <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] cursor-pointer  transition-colors">
-                      <input type="checkbox" checked={image.blackAndWhite} onChange={(e) => updateImage({ blackAndWhite: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                    <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] cursor-pointer  transition-colors">
+                      <input type="checkbox" checked={image.blackAndWhite} onChange={(e) => updateImage({ blackAndWhite: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                       Enable
                     </label>
                   </div>
@@ -695,7 +696,7 @@ export default function Home() {
                   {image.blackAndWhite && (
                     <div className="space-y-4 pt-2">
                       <div>
-                        <div className="flex justify-between mb-1 text-[10px] text-[var(--color-text-muted)]  transition-colors">
+                        <div className="flex justify-between mb-1 text-[12px] text-[var(--color-text-muted)]  transition-colors">
                           <span>Threshold</span>
                           <span>{image.threshold}</span>
                         </div>
@@ -713,7 +714,7 @@ export default function Home() {
                     <h3 className="text-xs font-semibold text-[var(--color-text-primary)]  mb-3 transition-colors">Color Adjustments</h3>
                     <div className="space-y-4">
                       <div>
-                        <div className="flex justify-between mb-1 text-[10px] text-[var(--color-text-muted)]  transition-colors">
+                        <div className="flex justify-between mb-1 text-[12px] text-[var(--color-text-muted)]  transition-colors">
                           <span>Brightness</span>
                           <span>{image.brightness}%</span>
                         </div>
@@ -724,7 +725,7 @@ export default function Home() {
                       </div>
                       
                       <div>
-                        <div className="flex justify-between mb-1 text-[10px] text-[var(--color-text-muted)]  transition-colors">
+                        <div className="flex justify-between mb-1 text-[12px] text-[var(--color-text-muted)]  transition-colors">
                           <span>Contrast</span>
                           <span>{image.contrast}%</span>
                         </div>
@@ -736,7 +737,7 @@ export default function Home() {
                       
                       <div className="pt-2">
                         <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors">
-                          <input type="checkbox" checked={image.grayscale} onChange={(e) => updateImage({ grayscale: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                          <input type="checkbox" checked={image.grayscale} onChange={(e) => updateImage({ grayscale: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                           Grayscale
                         </label>
                       </div>
@@ -744,15 +745,15 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="pt-4 border-t border-[var(--color-panel-border)] transition-colors">
+                <div className="pt-4  transition-colors">
                   <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors mb-4">
-                    <input type="checkbox" checked={image.invert} onChange={(e) => updateImage({ invert: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                    <input type="checkbox" checked={image.invert} onChange={(e) => updateImage({ invert: e.target.checked })} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                     Invert Image
                   </label>
                   
                   <button 
                     onClick={() => useGridStore.getState().resetAdjustments()}
-                    className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-app-surface-raised)] hover:bg-[var(--color-panel-border)] border border-[var(--color-panel-border-subtle)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider transition-colors"
+                    className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-app-surface-raised)] hover:bg-[var(--color-panel-border)] border border-[var(--color-panel-border-subtle)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-[12px] uppercase font-bold tracking-wider transition-colors"
                   >
                     Reset Adjustments
                   </button>
@@ -784,7 +785,7 @@ export default function Home() {
                   await saveCurrentProject(snap, snap.image.src || undefined);
                 }}
                 disabled={!activeProjectId}
-                className="text-[10px] text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
+                className="text-[12px] text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
               >
                 Save Current
               </button>
@@ -818,7 +819,7 @@ export default function Home() {
                             className="bg-transparent text-xs font-medium text-[var(--color-text-primary)] outline-none w-full truncate border-b border-transparent focus:border-[var(--color-accent)] transition-colors"
                           />
                         </div>
-                        <div className="text-[9px] text-[var(--color-text-muted)] mt-0.5 transition-colors">
+                        <div className="text-[11px] text-[var(--color-text-muted)] mt-0.5 transition-colors">
                           {new Date(p.updatedAt).toLocaleDateString()}
                         </div>
                       </div>
@@ -849,7 +850,7 @@ export default function Home() {
   return (
     <div className="flex flex-col h-[100dvh] bg-neutral-950 text-neutral-200 overflow-hidden font-sans transition-colors">
       {/* Top Toolbar */}
-      <header className="h-11 border-b border-neutral-800 flex items-center justify-between px-4 shrink-0 bg-neutral-950 z-20 transition-colors">
+      <header className="h-11  flex items-center justify-between px-4 shrink-0 bg-neutral-950 z-20 transition-colors">
         <div className="flex items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2 text-neutral-200 transition-colors">
             <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center hidden sm:flex transition-colors">
@@ -866,10 +867,10 @@ export default function Home() {
             <select 
               value={measurementUnit} 
               onChange={(e) => setMeasurementUnit(e.target.value as MeasurementUnit)}
-              className="sm:hidden bg-transparent border border-transparent hover:border-[var(--color-panel-border)] rounded-[var(--radius-control)] px-1 py-0.5 text-[10px] text-[var(--color-text-primary)] cursor-pointer outline-none ml-1 transition-colors"
+              className="sm:hidden bg-transparent border border-transparent hover:border-[var(--color-panel-border)] rounded-[var(--radius-control)] px-1 py-0.5 text-[12px] text-[var(--color-text-primary)] cursor-pointer outline-none ml-1 transition-colors"
             >
-              <option value="mm">mm</option>
               <option value="cm">cm</option>
+              <option value="mm">mm</option>
               <option value="in">in</option>
               <option value="px">px</option>
             </select>
@@ -900,8 +901,8 @@ export default function Home() {
               className="bg-transparent text-xs text-neutral-400 outline-none hover:text-neutral-200 cursor-pointer appearance-none pr-4 font-medium transition-colors"
               style={{ background: `url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239ca3af%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 0.15rem center/0.4rem` }}
             >
-              <option value="mm">mm</option>
               <option value="cm">cm</option>
+              <option value="mm">mm</option>
               <option value="in">in</option>
               <option value="px">px</option>
             </select>
@@ -932,11 +933,11 @@ export default function Home() {
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-[10px] font-medium text-[var(--color-text-muted)]  mb-1.5 transition-colors">Format</label>
+                      <label className="block text-[12px] font-medium text-[var(--color-text-muted)]  mb-1.5 transition-colors">Format</label>
                       <select 
                         value={exportFormat} 
                         onChange={(e) => setExportFormat(e.target.value as 'png' | 'pdf' | 'print')}
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                       >
                         <option value="png">PNG (Image Export)</option>
                         <option value="pdf">PDF (Print-Ready Document)</option>
@@ -946,11 +947,11 @@ export default function Home() {
 
                     {exportFormat === 'png' && (
                       <div>
-                        <label className="block text-[10px] font-medium text-[var(--color-text-muted)]  mb-1.5 transition-colors">Content</label>
+                        <label className="block text-[12px] font-medium text-[var(--color-text-muted)]  mb-1.5 transition-colors">Content</label>
                         <select 
                           value={exportContent} 
                           onChange={(e) => setExportContent(e.target.value as 'ref' | 'blank')}
-                          className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                          className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                         >
                           <option value="ref">Reference + Grid</option>
                           <option value="blank">Blank Grid Only</option>
@@ -959,11 +960,11 @@ export default function Home() {
                     )}
 
                     <div>
-                      <label className="block text-[10px] font-medium text-[var(--color-text-muted)]  mb-1.5 transition-colors">Resolution</label>
+                      <label className="block text-[12px] font-medium text-[var(--color-text-muted)]  mb-1.5 transition-colors">Resolution</label>
                       <select
                         value={dpi}
                         onChange={(e) => setDpi(Number(e.target.value) as Dpi)}
-                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                        className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
                       >
                         <option value={72}>72 DPI (Web)</option>
                         <option value={150}>150 DPI (Draft Print)</option>
@@ -974,8 +975,8 @@ export default function Home() {
 
                     {(exportFormat === 'pdf' || exportFormat === 'print') && (
                       <div className="pt-2">
-                        <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors">
-                          <input type="checkbox" checked={exportCalibration} onChange={(e) => setExportCalibration(e.target.checked)} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)] transition-colors" />
+                        <label className="flex items-center gap-2 text-[12px] text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors">
+                          <input type="checkbox" checked={exportCalibration} onChange={(e) => setExportCalibration(e.target.checked)} className="rounded bg-transparent border-[var(--color-text-muted)] text-[var(--color-text-primary)] focus:ring-[var(--color-accent)] transition-colors" />
                           Add 100mm Calibration Line
                         </label>
                       </div>
@@ -984,17 +985,17 @@ export default function Home() {
 
                   <div className="bg-[var(--color-app-surface-raised)] border border-[var(--color-panel-border)] p-3 rounded-[var(--radius-control)] transition-colors">
                     <div className="flex justify-between items-end mb-1">
-                      <span className="text-[10px] text-[var(--color-text-muted)]  transition-colors">Paper</span>
+                      <span className="text-[12px] text-[var(--color-text-muted)]  transition-colors">Paper</span>
                       <span className="text-xs font-medium text-[var(--color-text-primary)] transition-colors">{paperName} {activePaper.orientation === 'portrait' ? 'Portrait' : 'Landscape'}</span>
                     </div>
                     <div className="flex justify-between items-end">
-                      <span className="text-[10px] text-[var(--color-text-muted)]  transition-colors">Output</span>
+                      <span className="text-[12px] text-[var(--color-text-muted)]  transition-colors">Output</span>
                       <span className="text-xs font-medium text-[var(--color-text-primary)] transition-colors">
                         {exportFormat === 'png' ? `${widthPx} × ${heightPx} px` : `${widthMm} × ${heightMm} mm`}
                       </span>
                     </div>
                     {(exportFormat === 'pdf' || exportFormat === 'print') && (
-                      <p className="mt-2 text-[9px] text-amber-500/80 leading-tight transition-colors">
+                      <p className="mt-2 text-[11px] text-amber-500/80 leading-tight transition-colors">
                         Print at 100% / Actual Size.<br/>Do not use Fit to Page.
                       </p>
                     )}
@@ -1009,7 +1010,7 @@ export default function Home() {
                       } as const;
                       doExport(typeMap[exportFormat], exportCalibration);
                     }}
-                    className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-accent-fg)] text-[10px] uppercase font-bold tracking-wider transition-colors"
+                    className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-accent-fg)] text-[12px] uppercase font-bold tracking-wider transition-colors"
                   >
                     {isExporting ? 'Exporting...' : 'Export'}
                   </button>
@@ -1033,7 +1034,7 @@ export default function Home() {
         </main>
 
         {/* Left Rail / Bottom Nav */}
-        <nav className="fixed bottom-0 inset-x-0 h-[calc(3.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] lg:static lg:h-full lg:w-14 border-t lg:border-t-0 lg:border-r border-[var(--color-panel-border)] bg-[var(--color-panel-bg)]/95 backdrop-blur-md flex lg:flex-col items-center justify-around lg:justify-start lg:py-4 shrink-0 z-40 transition-colors">
+        <nav className="fixed bottom-0 inset-x-0 h-[calc(3.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] lg:static lg:h-full lg:w-14 bg-[var(--color-panel-bg)]/95 backdrop-blur-md flex lg:flex-col items-center justify-around lg:justify-start lg:py-3 lg:gap-0.5 shrink-0 z-40 overflow-hidden transition-colors">
           <NavItem id="image" icon={ImageIcon} label="Image" activeTab={activeTab} onClick={() => { if (activeTab === 'image' && isInspectorOpen) setIsInspectorOpen(false); else { setActiveTab('image'); setIsInspectorOpen(true); } }} />
           <NavItem id="grid" icon={GridIcon} label="Grid" activeTab={activeTab} onClick={() => { if (activeTab === 'grid' && isInspectorOpen) setIsInspectorOpen(false); else { setActiveTab('grid'); setIsInspectorOpen(true); } }} />
           <NavItem id="paper" icon={File} label="Paper" activeTab={activeTab} onClick={() => { if (activeTab === 'paper' && isInspectorOpen) setIsInspectorOpen(false); else { setActiveTab('paper'); setIsInspectorOpen(true); } }} />
@@ -1050,9 +1051,9 @@ export default function Home() {
           onClick={() => setIsInspectorOpen(false)} 
         />
         {/* Right Inspector / Bottom Sheet */}
-        <aside className={`fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] bg-[var(--color-panel-bg)] border-t border-[var(--color-panel-border)] z-40 rounded-t-[var(--radius-panel)] transform transition-transform duration-200 ease-out shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-[65dvh] flex flex-col
+        <aside className={`fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] bg-[var(--color-panel-bg)]  z-40 rounded-t-[20px] transform transition-transform duration-200 ease-out shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-[65dvh] flex flex-col
                           ${isInspectorOpen ? 'translate-y-0' : 'translate-y-full'}
-                          lg:static lg:translate-y-0 lg:h-full lg:w-[280px] lg:border-t-0 lg:border-l lg:rounded-none lg:shadow-none lg:shrink-0`}>
+                          lg:static lg:translate-y-0 lg:h-full lg:w-[280px]  lg:rounded-none lg:shadow-none lg:shrink-0`}>
           <div className="flex items-center justify-between p-3.5 border-b border-[var(--color-panel-border)] transition-colors">
             <span className="text-xs font-semibold  text-[var(--color-text-primary)] transition-colors">
               {activeTab}
@@ -1072,7 +1073,7 @@ export default function Home() {
       </div>
 
       {/* Bottom Status Bar */}
-      <footer className="h-7 border-t border-[var(--color-panel-border)] hidden sm:flex items-center justify-between px-4 text-[10px] text-[var(--color-text-muted)] tracking-wide shrink-0 bg-[var(--color-app-bg)] z-20 transition-colors">
+      <footer className="h-7  hidden sm:flex items-center justify-between px-4 text-[12px] text-[var(--color-text-muted)] tracking-wide shrink-0 bg-[var(--color-app-bg)] z-20 transition-colors">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5 text-[var(--color-text-primary)] font-medium transition-colors">
             <File size={10} /> 

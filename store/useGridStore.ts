@@ -314,7 +314,7 @@ export const useGridStore = create<GridStore>()(
         activePaper: defaultPaper,
         customPresets: [],
         dpi: 300,
-        measurementUnit: 'mm',
+        measurementUnit: 'cm',
         image: defaultImage,
         grid: defaultGrid,
 
@@ -476,13 +476,39 @@ export const useGridStore = create<GridStore>()(
     ),
     {
       name: 'grid-sketch-storage',
+      version: 2,
       partialize: (state) => ({
         activePaper: state.activePaper,
         customPresets: state.customPresets,
         dpi: state.dpi,
         grid: state.grid,
-        image: state.image, 
+        // Persist image settings but NOT the src data URL (it's multi-MB base64 that blocks the main thread on rehydration)
+        image: { ...state.image, src: null },
       }),
+      // Merge persisted state with defaults so new fields are populated and stale values are handled
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version < 2) {
+          // Reset grid to defaults on major version change (fixes stale white lineColor, missing style field, etc.)
+          const oldGrid = state.grid as Record<string, unknown> | undefined;
+          state.grid = { ...defaultGrid, ...(oldGrid || {}), lineColor: defaultGrid.lineColor, style: 'lines' as const };
+          
+          if (state.measurementUnit === 'mm') {
+            state.measurementUnit = 'cm';
+          }
+        }
+        return state;
+      },
+      merge: (persisted: unknown, current: GridStore) => {
+        const p = persisted as Partial<GridStore> | undefined;
+        if (!p) return current;
+        return {
+          ...current,
+          ...p,
+          grid: { ...defaultGrid, ...p.grid, style: p.grid?.style || 'lines' },
+          image: { ...current.image, ...p.image, src: null },
+        };
+      },
     }
   )
 );
