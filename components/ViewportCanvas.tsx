@@ -23,7 +23,7 @@ export default function ViewportCanvas() {
   const image = useGridStore((s) => s.image);
   const loadImageFile = useGridStore((s) => s.loadImageFile);
 
-  const { zoom, panX, panY, setZoom, setPan } = useViewportStore();
+  const { zoom, panX, panY } = useViewportStore();
 
   // Load image when src changes
   useEffect(() => {
@@ -153,7 +153,7 @@ export default function ViewportCanvas() {
     };
 
     const onPointerDown = (e: PointerEvent) => {
-      const { interactionMode, spacebarPanActive, zoom, panX, panY } = useViewportStore.getState();
+      const { interactionMode, spacebarPanActive } = useViewportStore.getState();
       const state = useGridStore.getState();
       
       const isActualPan = spacebarPanActive || interactionMode === 'pan';

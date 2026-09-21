@@ -18,7 +18,7 @@ export function drawSheet(
     calibrationLine?: boolean;
   }
 ) {
-  const { widthMm, heightMm } = getEffectivePaperDimensions(paper, presets);
+  const { widthMm } = getEffectivePaperDimensions(paper, presets);
   
   // Calculate scale factor from physical mm to pixels of the target canvas
   const scale = widthPx / widthMm;
@@ -89,6 +89,12 @@ export function drawSheet(
     drawW *= image.scale;
     drawH *= image.scale;
     
+    // Apply a precise 1.002 bleed for crop-to-paper and cover to eliminate subpixel white borders without distorting geometry
+    if (image.fitMode === 'crop-to-paper' || image.fitMode === 'cover') {
+      drawW *= 1.002;
+      drawH *= 1.002;
+    }
+    
     ctx.drawImage(imgEl, -drawW / 2, -drawH / 2, drawW, drawH);
     ctx.filter = 'none';
     ctx.restore();
@@ -97,8 +103,6 @@ export function drawSheet(
   // Draw margins and grid
   const { top, right, bottom, left } = paper.margins;
   const mt = top * scale;
-  const mr = right * scale;
-  const mb = bottom * scale;
   const ml = left * scale;
 
   if (grid.visible) {

@@ -35,9 +35,9 @@
   --color-input-hover: #1A2025;
   --color-input-border: #2B3238;
 
-  --radius-control: 6px;
-  --radius-panel: 8px;
-  --radius-button: 6px;
+  --radius-control: 3px;
+  --radius-panel: 0px;
+  --radius-button: 4px;
 }
 
 html,
@@ -62,4 +62,78 @@ body {
 ::-webkit-scrollbar-thumb {
   background-color: #333;
   border-radius: 9999px;
+}
+
+/* --- MICRO-INTERACTIONS & MOTION --- */
+
+/* Panel Transitions */
+@keyframes slideFadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(4px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.animate-panel-in {
+  animation: slideFadeIn 150ms ease-out forwards;
+}
+
+/* Modal Transitions */
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.97) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-modal-in {
+  animation: modalIn 150ms ease-out forwards;
+}
+
+/* Tooltips */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--color-panel-elevated);
+  color: var(--color-text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-panel-border);
+  transition: opacity 150ms ease-out, transform 150ms ease-out;
+  white-space: nowrap;
+  z-index: 100;
+  margin-bottom: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-panel-in {
+    animation: none;
+  }
+  [data-tooltip]::after {
+    transition: none !important;
+  }
 }
