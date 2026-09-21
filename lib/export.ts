@@ -10,10 +10,11 @@ export interface ExportOptions {
   grid: GridConfig;
   image: ImageState;
   type: 'png-ref' | 'png-blank' | 'pdf' | 'print';
+  calibrationLine?: boolean;
 }
 
 export async function handleExport(options: ExportOptions) {
-  const { activePaper, customPresets, dpi, grid, image, type } = options;
+  const { activePaper, customPresets, dpi, grid, image, type, calibrationLine } = options;
   const { widthPx, heightPx } = getCanvasPixelSize(activePaper, customPresets, dpi);
   const { widthMm, heightMm, name: paperName } = getEffectivePaperDimensions(activePaper, customPresets);
   
@@ -25,12 +26,11 @@ export async function handleExport(options: ExportOptions) {
 
   const imgEl = (image.src && type !== 'png-blank') ? await loadImageElement(image.src) : null;
   const blankGrid = type === 'png-blank';
-  const isPrintOrPDF = type === 'pdf' || type === 'print';
   
   drawSheet(ctx, widthPx, heightPx, activePaper, customPresets, grid, image, imgEl, { 
     isExport: true, 
     blankGrid,
-    calibrationLine: isPrintOrPDF 
+    calibrationLine 
   });
 
   const filenameBase = `gridsketch-${paperName.toLowerCase()}-${dpi}dpi`;

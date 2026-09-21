@@ -50,6 +50,9 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('image');
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'png' | 'pdf' | 'print'>('png');
+  const [exportContent, setExportContent] = useState<'ref' | 'blank'>('ref');
+  const [exportCalibration, setExportCalibration] = useState(false);
   const activePaper = useGridStore((s) => s.activePaper);
 
   const customPresets = useGridStore((s) => s.customPresets);
@@ -149,7 +152,7 @@ export default function Home() {
     };
   }, [loadImageFile]);
 
-  async function doExport(type: 'png-ref' | 'png-blank' | 'pdf' | 'print') {
+  async function doExport(type: 'png-ref' | 'png-blank' | 'pdf' | 'print', calibrationLine?: boolean) {
     setIsExporting(true);
     setExportMenuOpen(false);
     try {
@@ -159,7 +162,8 @@ export default function Home() {
         dpi,
         grid,
         image,
-        type
+        type,
+        calibrationLine
       });
     } catch (e) {
       console.error(e);
@@ -631,17 +635,17 @@ export default function Home() {
         return (
           <div className="space-y-6">
             {!image.src ? (
-              <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-lg text-center">
-                <SlidersHorizontal size={24} className="mx-auto text-neutral-600 mb-2" />
-                <p className="text-[10px] text-neutral-400">Load an image to apply adjustments.</p>
+              <div className="p-4 bg-[var(--color-app-surface)] border border-[var(--color-panel-border)] rounded-[var(--radius-panel)] text-center">
+                <SlidersHorizontal size={24} className="mx-auto text-[var(--color-text-muted)] mb-2" />
+                <p className="text-[10px] text-[var(--color-text-muted)]">Load an image to apply adjustments.</p>
               </div>
             ) : (
               <>
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Black & White</h3>
-                    <label className="flex items-center gap-2 text-[10px] text-neutral-400 cursor-pointer uppercase tracking-wider">
-                      <input type="checkbox" checked={image.blackAndWhite} onChange={(e) => updateImage({ blackAndWhite: e.target.checked })} className="rounded border-neutral-700 bg-neutral-900 text-blue-600" />
+                    <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">Black & White</h3>
+                    <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] cursor-pointer uppercase tracking-wider">
+                      <input type="checkbox" checked={image.blackAndWhite} onChange={(e) => updateImage({ blackAndWhite: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
                       Enable
                     </label>
                   </div>
@@ -649,14 +653,14 @@ export default function Home() {
                   {image.blackAndWhite && (
                     <div className="space-y-4 pt-2">
                       <div>
-                        <div className="flex justify-between mb-1 text-[10px] text-neutral-500 uppercase tracking-wider">
+                        <div className="flex justify-between mb-1 text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">
                           <span>Threshold</span>
                           <span>{image.threshold}</span>
                         </div>
                         <input type="range" min="0" max="200" value={image.threshold} 
                           onPointerDown={() => useGridStore.temporal.getState().pause()}
                           onPointerUp={() => { useGridStore.temporal.getState().resume(); updateImage({}); }}
-                          onChange={(e) => updateImage({ threshold: Number(e.target.value) })} className="w-full accent-blue-500" />
+                          onChange={(e) => updateImage({ threshold: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] cursor-ew-resize" />
                       </div>
                     </div>
                   )}
@@ -664,33 +668,33 @@ export default function Home() {
 
                 {!image.blackAndWhite && (
                   <div>
-                    <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">Color Adjustments</h3>
+                    <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-3">Color Adjustments</h3>
                     <div className="space-y-4">
                       <div>
-                        <div className="flex justify-between mb-1 text-[10px] text-neutral-500 uppercase tracking-wider">
+                        <div className="flex justify-between mb-1 text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">
                           <span>Brightness</span>
                           <span>{image.brightness}%</span>
                         </div>
                         <input type="range" min="0" max="200" value={image.brightness} 
                           onPointerDown={() => useGridStore.temporal.getState().pause()}
                           onPointerUp={() => { useGridStore.temporal.getState().resume(); updateImage({}); }}
-                          onChange={(e) => updateImage({ brightness: Number(e.target.value) })} className="w-full accent-blue-500" />
+                          onChange={(e) => updateImage({ brightness: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] cursor-ew-resize" />
                       </div>
                       
                       <div>
-                        <div className="flex justify-between mb-1 text-[10px] text-neutral-500 uppercase tracking-wider">
+                        <div className="flex justify-between mb-1 text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">
                           <span>Contrast</span>
                           <span>{image.contrast}%</span>
                         </div>
                         <input type="range" min="0" max="200" value={image.contrast} 
                           onPointerDown={() => useGridStore.temporal.getState().pause()}
                           onPointerUp={() => { useGridStore.temporal.getState().resume(); updateImage({}); }}
-                          onChange={(e) => updateImage({ contrast: Number(e.target.value) })} className="w-full accent-blue-500" />
+                          onChange={(e) => updateImage({ contrast: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] cursor-ew-resize" />
                       </div>
                       
                       <div className="pt-2">
-                        <label className="flex items-center gap-2 text-xs text-neutral-400 cursor-pointer">
-                          <input type="checkbox" checked={image.grayscale} onChange={(e) => updateImage({ grayscale: e.target.checked })} className="rounded border-neutral-700 bg-neutral-900 text-blue-600" />
+                        <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors">
+                          <input type="checkbox" checked={image.grayscale} onChange={(e) => updateImage({ grayscale: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
                           Grayscale
                         </label>
                       </div>
@@ -698,15 +702,15 @@ export default function Home() {
                   </div>
                 )}
 
-                <div className="pt-2 border-t border-neutral-800">
-                  <label className="flex items-center gap-2 text-xs text-neutral-400 cursor-pointer mb-4">
-                    <input type="checkbox" checked={image.invert} onChange={(e) => updateImage({ invert: e.target.checked })} className="rounded border-neutral-700 bg-neutral-900 text-blue-600" />
+                <div className="pt-4 border-t border-[var(--color-panel-border)]">
+                  <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors mb-4">
+                    <input type="checkbox" checked={image.invert} onChange={(e) => updateImage({ invert: e.target.checked })} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
                     Invert Image
                   </label>
                   
                   <button 
                     onClick={() => useGridStore.getState().resetAdjustments()}
-                    className="w-full py-1.5 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-400 hover:text-neutral-200 text-[10px] uppercase font-medium transition-colors"
+                    className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-app-surface-raised)] hover:bg-[var(--color-panel-border)] border border-[var(--color-panel-border-subtle)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-[10px] uppercase font-bold tracking-wider transition-colors"
                   >
                     Reset Adjustments
                   </button>
@@ -858,7 +862,7 @@ export default function Home() {
             <button
               onClick={() => setExportMenuOpen(!exportMenuOpen)}
               disabled={isExporting}
-              className="ml-1 flex items-center gap-2 rounded bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-900 hover:bg-white disabled:opacity-50 transition-colors"
+              className="ml-1 flex items-center gap-2 rounded-[var(--radius-button)] bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50 transition-colors"
             >
               <Download size={14} />
               <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export'}</span>
@@ -867,28 +871,95 @@ export default function Home() {
             {exportMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setExportMenuOpen(false)} />
-                <div className="absolute top-full right-0 mt-2 w-56 bg-neutral-900 border border-neutral-800 rounded shadow-xl z-50 py-1 flex flex-col">
-                  <div className="px-3 py-2 border-b border-neutral-800">
-                    <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">Format Options</div>
-                    <div className="text-[10px] text-neutral-500 mt-0.5">{dpi} DPI Output</div>
+                <div className="absolute top-full right-0 mt-2 w-72 bg-[var(--color-app-surface)] border border-[var(--color-panel-border)] rounded-[var(--radius-panel)] shadow-2xl z-50 p-4 flex flex-col gap-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-[var(--color-panel-border)]">
+                    <h2 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">Export</h2>
+                    <button onClick={() => setExportMenuOpen(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"><X size={14} /></button>
                   </div>
-                  <button onClick={() => doExport('png-ref')} className="text-left px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 transition-colors">
-                    PNG (Image + Grid)
-                  </button>
-                  <button onClick={() => doExport('png-blank')} className="text-left px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 transition-colors">
-                    PNG (Blank Grid Only)
-                  </button>
-                  <button onClick={() => doExport('pdf')} className="text-left px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 transition-colors border-t border-neutral-800">
-                    Print-Ready PDF
-                  </button>
-                  <button onClick={() => doExport('print')} className="text-left px-3 py-2 text-xs text-neutral-200 hover:bg-neutral-800 transition-colors">
-                    Print (100% Actual Size)
-                  </button>
-                  <div className="px-3 py-2 bg-neutral-950 mt-1 border-t border-neutral-800">
-                    <p className="text-[9px] text-neutral-500 leading-tight">
-                      For physical accuracy, use PDF/Print and ensure &quot;Fit to Page&quot; is disabled in your printer settings.
-                    </p>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">Format</label>
+                      <select 
+                        value={exportFormat} 
+                        onChange={(e) => setExportFormat(e.target.value as 'png' | 'pdf' | 'print')}
+                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                      >
+                        <option value="png">PNG (Image Export)</option>
+                        <option value="pdf">PDF (Print-Ready Document)</option>
+                        <option value="print">Print (Direct to Printer)</option>
+                      </select>
+                    </div>
+
+                    {exportFormat === 'png' && (
+                      <div>
+                        <label className="block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">Content</label>
+                        <select 
+                          value={exportContent} 
+                          onChange={(e) => setExportContent(e.target.value as 'ref' | 'blank')}
+                          className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                        >
+                          <option value="ref">Reference + Grid</option>
+                          <option value="blank">Blank Grid Only</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">Resolution</label>
+                      <select
+                        value={dpi}
+                        onChange={(e) => setDpi(Number(e.target.value) as Dpi)}
+                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                      >
+                        <option value={72}>72 DPI (Web)</option>
+                        <option value={150}>150 DPI (Draft Print)</option>
+                        <option value={300}>300 DPI (Standard Print)</option>
+                        <option value={600}>600 DPI (High Res Print)</option>
+                      </select>
+                    </div>
+
+                    {(exportFormat === 'pdf' || exportFormat === 'print') && (
+                      <div className="pt-2">
+                        <label className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors">
+                          <input type="checkbox" checked={exportCalibration} onChange={(e) => setExportCalibration(e.target.checked)} className="rounded border-[var(--color-panel-border)] bg-[var(--color-app-surface)] text-[var(--color-accent)] focus:ring-[var(--color-accent)]" />
+                          Add 100mm Calibration Line
+                        </label>
+                      </div>
+                    )}
                   </div>
+
+                  <div className="bg-[var(--color-app-surface-raised)] border border-[var(--color-panel-border)] p-3 rounded-[var(--radius-control)]">
+                    <div className="flex justify-between items-end mb-1">
+                      <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Paper</span>
+                      <span className="text-xs font-medium text-[var(--color-text-primary)]">{paperName} {activePaper.orientation === 'portrait' ? 'Portrait' : 'Landscape'}</span>
+                    </div>
+                    <div className="flex justify-between items-end">
+                      <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">Output</span>
+                      <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                        {exportFormat === 'png' ? `${widthPx} × ${heightPx} px` : `${widthMm} × ${heightMm} mm`}
+                      </span>
+                    </div>
+                    {(exportFormat === 'pdf' || exportFormat === 'print') && (
+                      <p className="mt-2 text-[9px] text-amber-500/80 leading-tight">
+                        Print at 100% / Actual Size.<br/>Do not use Fit to Page.
+                      </p>
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      const typeMap = {
+                        'png': exportContent === 'ref' ? 'png-ref' : 'png-blank',
+                        'pdf': 'pdf',
+                        'print': 'print'
+                      } as const;
+                      doExport(typeMap[exportFormat], exportCalibration);
+                    }}
+                    className="w-full py-2 rounded-[var(--radius-button)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-[var(--color-accent-fg)] text-[10px] uppercase font-bold tracking-wider transition-colors"
+                  >
+                    {isExporting ? 'Exporting...' : 'Export'}
+                  </button>
                 </div>
               </>
             )}
