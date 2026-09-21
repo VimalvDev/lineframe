@@ -304,21 +304,15 @@ export const useGridStore = create<GridStore>()(
         grid: defaultGrid,
 
         setPreset: (presetId) => {
-          const { activePaper, image, customPresets } = get();
+          const { activePaper } = get();
           const nextPaper = { ...activePaper, presetId, isCustom: false };
           set({ activePaper: nextPaper });
-          if (image.src) {
-            set({ image: { ...image, ...computeFitLayout(image, nextPaper, customPresets, image.fitMode) } });
-          }
         },
 
         setOrientation: (orientation) => {
-          const { activePaper, image, customPresets } = get();
+          const { activePaper } = get();
           const nextPaper = { ...activePaper, orientation };
           set({ activePaper: nextPaper });
-          if (image.src) {
-            set({ image: { ...image, ...computeFitLayout(image, nextPaper, customPresets, image.fitMode) } });
-          }
         },
 
         setMargins: (margins) => {
@@ -327,7 +321,7 @@ export const useGridStore = create<GridStore>()(
         },
 
         setCustomPaper: (widthMm, heightMm, name) => {
-          const { activePaper, image, customPresets } = get();
+          const { activePaper } = get();
           const nextPaper: ActivePaperState = {
             ...activePaper,
             isCustom: true,
@@ -337,9 +331,6 @@ export const useGridStore = create<GridStore>()(
             customName: name || 'Custom',
           };
           set({ activePaper: nextPaper });
-          if (image.src) {
-            set({ image: { ...image, ...computeFitLayout(image, nextPaper, customPresets, image.fitMode) } });
-          }
         },
 
         saveCustomPreset: (name) => {

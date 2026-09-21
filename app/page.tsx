@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { 
   Undo2, Redo2, Trash2, Upload, Download, Image as ImageIcon, Grid as GridIcon, 
   File, SlidersHorizontal, Folder, Settings, ZoomIn, Printer, X, Link2,
-  RotateCcw, RotateCw, FlipHorizontal, FlipVertical, Copy, Crop
+  RotateCcw, RotateCw, FlipHorizontal, FlipVertical, Copy, Crop, AlertTriangle
 } from 'lucide-react';
 import {
   useGridStore,
@@ -85,6 +85,9 @@ export default function Home() {
   const { widthPx, heightPx } = getCanvasPixelSize(activePaper, customPresets, dpi);
   const { cellWidthMm, cellHeightMm } = getCellSizeMm(activePaper, customPresets, grid);
   const { widthMm, heightMm, name: paperName } = getEffectivePaperDimensions(activePaper, customPresets);
+  const imageAspect = image.widthMm / image.heightMm;
+  const paperAspect = widthMm / heightMm;
+  const imageMatchesPaperAspect = !image.src || Math.abs(imageAspect - paperAspect) < 0.01;
 
   const projects = useProjectStore((s) => s.projects);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
@@ -234,6 +237,21 @@ export default function Home() {
                   )}
                   {image.fitMode === 'original' && (
                     <p className="text-[10px] text-[var(--color-text-muted)] mb-3">Preserves exact physical dimensions. Drag to reposition.</p>
+                  )}
+
+                  {!imageMatchesPaperAspect && (
+                    <div className="mt-3 p-3 rounded-[var(--radius-panel)] bg-amber-950/20 border border-amber-900/30 flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <AlertTriangle className="text-amber-500 shrink-0" size={14} />
+                        <span className="text-[10px] text-amber-500 font-medium">Image crop does not match document aspect ratio.</span>
+                      </div>
+                      <button 
+                        onClick={() => setFitMode('crop-to-paper')}
+                        className="py-1.5 px-3 rounded-[var(--radius-button)] bg-amber-950/40 hover:bg-amber-950/60 text-amber-500 text-[10px] uppercase font-bold tracking-wider transition-colors border border-amber-900/30 w-full"
+                      >
+                        Crop to Paper
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -483,12 +501,12 @@ export default function Home() {
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">Document Size</h3>
-              <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Preset</label>
+              <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-3">Document Size</h3>
+              <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Preset</label>
               <select
                 value={activePaper.presetId}
                 onChange={(e) => setPreset(e.target.value)}
-                className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600 transition-colors mb-3"
+                className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors mb-3"
               >
                 <optgroup label="Standard">
                   {PAPER_SIZES.map((p) => (
@@ -510,28 +528,28 @@ export default function Home() {
               </select>
 
               {activePaper.isCustom && (
-                <div className="space-y-3 mb-3">
+                <div className="space-y-3 mb-3 p-3 rounded-[var(--radius-panel)] bg-[var(--color-app-surface-raised)] border border-[var(--color-panel-border)]">
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Width ({measurementUnit})</label>
+                      <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Width ({measurementUnit})</label>
                       <UnitInput
                         unit={measurementUnit} dpi={dpi} min={1} valueMm={activePaper.customWidthMm || 210}
                         onChangeMm={(v) => setCustomPaper(v, activePaper.customHeightMm || 297, activePaper.customName)}
-                        className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600"
+                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Height ({measurementUnit})</label>
+                      <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Height ({measurementUnit})</label>
                       <UnitInput
                         unit={measurementUnit} dpi={dpi} min={1} valueMm={activePaper.customHeightMm || 297}
                         onChangeMm={(v) => setCustomPaper(activePaper.customWidthMm || 210, v, activePaper.customName)}
-                        className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600"
+                        className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
                       />
                     </div>
                   </div>
                   <button 
                     onClick={() => saveCustomPreset(prompt('Name for custom preset?', 'My Preset') || 'Custom')}
-                    className="w-full py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+                    className="w-full py-1.5 rounded-[var(--radius-button)] bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-xs font-medium transition-colors"
                   >
                     Save as Preset
                   </button>
@@ -539,16 +557,16 @@ export default function Home() {
               )}
 
               {/* Orientation Toggle */}
-              <div className="flex items-center gap-1 bg-neutral-900 p-1 rounded border border-neutral-800">
+              <div className="flex items-center gap-1 bg-[var(--color-app-surface)] p-1 rounded-[var(--radius-control)] border border-[var(--color-panel-border)] mt-1">
                  <button
                     onClick={() => setOrientation('portrait')}
-                    className={`flex-1 py-1.5 text-[10px] uppercase font-medium rounded transition-colors ${activePaper.orientation === 'portrait' ? 'bg-neutral-800 text-neutral-200' : 'text-neutral-500 hover:text-neutral-400'}`}
+                    className={`flex-1 py-1.5 text-[10px] uppercase font-medium rounded-[var(--radius-control)] transition-colors ${activePaper.orientation === 'portrait' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
                  >
                    Portrait
                  </button>
                  <button
                     onClick={() => setOrientation('landscape')}
-                    className={`flex-1 py-1.5 text-[10px] uppercase font-medium rounded transition-colors ${activePaper.orientation === 'landscape' ? 'bg-neutral-800 text-neutral-200' : 'text-neutral-500 hover:text-neutral-400'}`}
+                    className={`flex-1 py-1.5 text-[10px] uppercase font-medium rounded-[var(--radius-control)] transition-colors ${activePaper.orientation === 'landscape' ? 'bg-[var(--color-app-surface-raised)] text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'}`}
                  >
                    Landscape
                  </button>
@@ -556,50 +574,50 @@ export default function Home() {
             </div>
             
             <div>
-              <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">Margins</h3>
+              <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-3">Margins</h3>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Top ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Top ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.top}
                     onChangeMm={(v) => setMargins({ top: v })}
-                    className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600"
+                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Bottom ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Bottom ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.bottom}
                     onChangeMm={(v) => setMargins({ bottom: v })}
-                    className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600"
+                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Left ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Left ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.left}
                     onChangeMm={(v) => setMargins({ left: v })}
-                    className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600"
+                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Right ({measurementUnit})</label>
+                  <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Right ({measurementUnit})</label>
                   <UnitInput
                     unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.right}
                     onChangeMm={(v) => setMargins({ right: v })}
-                    className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600"
+                    className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
                   />
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">Export Settings</h3>
-              <label className="mb-1.5 block text-[10px] font-medium text-neutral-500 uppercase tracking-wider">Resolution</label>
+              <h3 className="text-xs font-semibold text-[var(--color-text-primary)] uppercase tracking-wider mb-3">Export Settings</h3>
+              <label className="mb-1.5 block text-[10px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider">Resolution</label>
               <select
                 value={dpi}
                 onChange={(e) => setDpi(Number(e.target.value) as Dpi)}
-                className="w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-neutral-600 transition-colors"
+                className="w-full rounded-[var(--radius-control)] border border-[var(--color-input-border)] bg-[var(--color-input)] px-2 py-1.5 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
               >
                 <option value={72}>72 DPI (Web)</option>
                 <option value={150}>150 DPI (Draft Print)</option>
@@ -919,18 +937,25 @@ export default function Home() {
       </div>
 
       {/* Bottom Status Bar */}
-      <footer className="h-7 border-t border-neutral-800 hidden sm:flex items-center justify-between px-4 text-[10px] text-neutral-500 tracking-wide shrink-0 bg-neutral-950 z-20">
+      <footer className="h-7 border-t border-[var(--color-panel-border)] hidden sm:flex items-center justify-between px-4 text-[10px] text-[var(--color-text-muted)] tracking-wide shrink-0 bg-[var(--color-app-bg)] z-20">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 text-[var(--color-text-primary)] font-medium">
             <File size={10} /> 
             {paperName} {activePaper.orientation.charAt(0).toUpperCase() + activePaper.orientation.slice(1)}
           </span>
           <span className="hidden sm:inline">{formatUnit(widthMm, measurementUnit, dpi)} × {formatUnit(heightMm, measurementUnit, dpi)} {measurementUnit}</span>
-          <span className="hidden md:inline">Cell: {formatUnit(cellWidthMm, measurementUnit, dpi)} × {formatUnit(cellHeightMm, measurementUnit, dpi)} {measurementUnit}</span>
+          <div className="h-3 w-px bg-[var(--color-panel-border)] hidden md:block"></div>
+          <span className="hidden md:flex items-center gap-1.5">
+            <GridIcon size={10} />
+            {grid.columns} × {grid.rows}
+          </span>
+          <span className="hidden lg:inline text-[var(--color-text-secondary)]">
+            Cell: {formatUnit(cellWidthMm, measurementUnit, dpi)} × {formatUnit(cellHeightMm, measurementUnit, dpi)} {measurementUnit}
+          </span>
         </div>
         <div className="flex items-center gap-4">
           <span>{widthPx} × {heightPx} px @ {dpi} DPI</span>
-          <span className="flex items-center gap-1"><ZoomIn size={12} /> Fit</span>
+          <span className="flex items-center gap-1 hover:text-[var(--color-text-primary)] cursor-pointer transition-colors" onClick={() => useViewportStore.getState().resetView()}><ZoomIn size={12} /> Fit</span>
         </div>
       </footer>
     </div>
