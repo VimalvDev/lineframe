@@ -990,28 +990,28 @@ export default function Home() {
         </main>
 
         {/* Left Rail / Bottom Nav */}
-        <nav className="fixed bottom-0 inset-x-0 h-[calc(3.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] lg:static lg:h-full lg:w-14 border-t lg:border-t-0 lg:border-r border-neutral-800 bg-neutral-950/95 backdrop-blur-md flex lg:flex-col items-center justify-around lg:justify-start lg:py-4 shrink-0 z-40">
+        <nav className="fixed bottom-0 inset-x-0 h-[calc(3.5rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] lg:static lg:h-full lg:w-14 border-t lg:border-t-0 lg:border-r border-[var(--color-panel-border)] bg-[var(--color-panel-bg)]/95 backdrop-blur-md flex lg:flex-col items-center justify-around lg:justify-start lg:py-4 shrink-0 z-40">
           <NavItem id="image" icon={ImageIcon} label="Image" activeTab={activeTab} onClick={() => { setActiveTab('image'); setIsInspectorOpen(true); }} />
           <NavItem id="grid" icon={GridIcon} label="Grid" activeTab={activeTab} onClick={() => { setActiveTab('grid'); setIsInspectorOpen(true); }} />
           <NavItem id="paper" icon={File} label="Paper" activeTab={activeTab} onClick={() => { setActiveTab('paper'); setIsInspectorOpen(true); }} />
           <NavItem id="adjustments" icon={SlidersHorizontal} label="Adjust" activeTab={activeTab} onClick={() => { setActiveTab('adjustments'); setIsInspectorOpen(true); }} />
-          <div className="hidden lg:block h-px w-8 bg-neutral-800 my-2"></div>
+          <div className="hidden lg:block h-px w-8 bg-[var(--color-panel-border)] my-2"></div>
           <NavItem id="projects" icon={Folder} label="Projects" activeTab={activeTab} onClick={() => { setActiveTab('projects'); setIsInspectorOpen(true); }} />
           <div className="lg:mt-auto"></div>
           <NavItem id="settings" icon={Settings} label="Settings" activeTab={activeTab} onClick={() => { setActiveTab('settings'); setIsInspectorOpen(true); }} />
         </nav>
 
         {/* Right Inspector / Bottom Sheet */}
-        <aside className={`fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] bg-neutral-950 border-t border-neutral-800 z-30 rounded-t-2xl transform transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-[65dvh] flex flex-col
+        <aside className={`fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] bg-[var(--color-panel-bg)] border-t border-[var(--color-panel-border)] z-30 rounded-t-[var(--radius-panel)] transform transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-[65dvh] flex flex-col
                           ${isInspectorOpen ? 'translate-y-0' : 'translate-y-full'}
                           lg:static lg:translate-y-0 lg:h-full lg:w-[280px] lg:border-t-0 lg:border-l lg:rounded-none lg:shadow-none lg:shrink-0`}>
-          <div className="flex items-center justify-between p-3.5 border-b border-neutral-800">
-            <span className="text-xs font-semibold uppercase tracking-wider text-neutral-300">
+          <div className="flex items-center justify-between p-3.5 border-b border-[var(--color-panel-border)]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-primary)]">
               {activeTab}
             </span>
             <button 
               onClick={() => setIsInspectorOpen(false)}
-              className="lg:hidden p-2 -mr-2 text-neutral-500 hover:text-neutral-300 transition-colors"
+              className="lg:hidden p-2 -mr-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
             >
               <X size={16} />
             </button>
