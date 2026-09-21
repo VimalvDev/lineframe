@@ -165,6 +165,10 @@ export default function ViewportCanvas() {
     let resizeStartClientX = 0;
     let resizeStartClientY = 0;
 
+    let dragStartClientX = 0;
+    let dragStartClientY = 0;
+    let dragStartImage = { xMm: 0, yMm: 0, widthMm: 0, heightMm: 0 };
+
     let initialTouchDistance = 0;
     let initialTouchMidX = 0;
     let initialTouchMidY = 0;
@@ -297,11 +301,11 @@ export default function ViewportCanvas() {
           return;
         }
       }
-      
       if (interactionMode === 'move' && state.image.src) {
         isDraggingImage = true;
-        lastClientX = e.clientX;
-        lastClientY = e.clientY;
+        dragStartClientX = e.clientX;
+        dragStartClientY = e.clientY;
+        dragStartImage = { ...state.image };
         canvas.style.cursor = 'move';
         return;
       }
@@ -381,15 +385,15 @@ export default function ViewportCanvas() {
           xMm: newX, yMm: newY, widthMm: newW, heightMm: newH,
         });
       } else if (isDraggingImage) {
-        const dx = e.clientX - lastClientX;
-        const dy = e.clientY - lastClientY;
+        const dxPx = e.clientX - dragStartClientX;
+        const dyPx = e.clientY - dragStartClientY;
         const { zoom } = useViewportStore.getState();
         
-        const dxMm = (dx / zoom) / MM_TO_PX;
-        const dyMm = (dy / zoom) / MM_TO_PX;
+        const dxMm = (dxPx / zoom) / MM_TO_PX;
+        const dyMm = (dyPx / zoom) / MM_TO_PX;
         
         const gridState = useGridStore.getState();
-        const img = gridState.image;
+        const img = dragStartImage;
         
         // Move the bounding box position
         let newXMm = img.xMm + dxMm;
@@ -472,8 +476,6 @@ export default function ViewportCanvas() {
           xMm: newXMm,
           yMm: newYMm
         });
-        lastClientX = e.clientX;
-        lastClientY = e.clientY;
       } else {
         // Idle: update cursor based on hover
         const state = useGridStore.getState();
