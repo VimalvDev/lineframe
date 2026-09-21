@@ -89,6 +89,7 @@ export interface GridConfig {
   linked: boolean;
   forceSquare: boolean;
 
+  style: 'lines' | 'intersections';
   lineColor: string;
   lineWidth: number;
   opacity: number;
@@ -188,7 +189,8 @@ export const defaultGrid: GridConfig = {
   cellHeightMm: 20,
   linked: true,
   forceSquare: false,
-  lineColor: '#3b82f6',
+  style: 'lines',
+  lineColor: '#FF4545',
   lineWidth: 1,
   opacity: 1,
   visible: true,

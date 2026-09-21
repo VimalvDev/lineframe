@@ -101,7 +101,23 @@ export default function Home() {
   const duplicateProject = useProjectStore((s) => s.duplicateProject);
   const deleteProject = useProjectStore((s) => s.deleteProject);
 
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      loadImageFile(file);
+    }
+  };
+
   useEffect(() => {
+
     loadProjects();
   }, [loadProjects]);
 
@@ -124,6 +140,7 @@ export default function Home() {
   }
 
   useEffect(() => {
+    
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -1005,7 +1022,12 @@ export default function Home() {
 
       <div className="flex flex-1 flex-col lg:flex-row overflow-hidden relative pb-14 lg:pb-0">
         {/* Canvas - main content */}
-        <main className="flex-1 bg-[var(--color-canvas-bg)] lg:order-2 flex items-center justify-center overflow-hidden relative transition-colors" onClick={() => setIsInspectorOpen(false)}>
+        <main 
+          className="flex-1 bg-[var(--color-canvas-bg)] lg:order-2 flex items-center justify-center overflow-hidden relative transition-colors" 
+          onClick={() => setIsInspectorOpen(false)}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           <ViewportCanvas />
           <CanvasControls />
         </main>

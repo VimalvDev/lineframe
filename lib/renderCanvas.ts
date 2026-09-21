@@ -128,24 +128,42 @@ export function drawSheet(
          ctx.stroke();
       }
 
-      // Draw columns
-      for (let x = cellW, c = 1; x < usableW - 0.1; x += cellW, c++) {
-        const isMajor = grid.majorLineFrequency > 0 && c % grid.majorLineFrequency === 0;
+      // Draw columns & rows or intersections
+      if (grid.style === 'intersections') {
+        const crossSize = Math.max(4, baseLineWidth * 6);
         ctx.beginPath();
-        ctx.moveTo(ml + x, mt);
-        ctx.lineTo(ml + x, mt + usableH);
-        ctx.lineWidth = isMajor ? baseLineWidth * 2 : baseLineWidth;
+        for (let x = cellW, c = 1; x < usableW - 0.1; x += cellW, c++) {
+          for (let y = cellH, r = 1; y < usableH - 0.1; y += cellH, r++) {
+            const isMajor = grid.majorLineFrequency > 0 && (c % grid.majorLineFrequency === 0 || r % grid.majorLineFrequency === 0);
+            const cx = ml + x;
+            const cy = mt + y;
+            ctx.moveTo(cx - crossSize / 2, cy);
+            ctx.lineTo(cx + crossSize / 2, cy);
+            ctx.moveTo(cx, cy - crossSize / 2);
+            ctx.lineTo(cx, cy + crossSize / 2);
+          }
+        }
         ctx.stroke();
-      }
+      } else {
+        // Draw columns
+        for (let x = cellW, c = 1; x < usableW - 0.1; x += cellW, c++) {
+          const isMajor = grid.majorLineFrequency > 0 && c % grid.majorLineFrequency === 0;
+          ctx.beginPath();
+          ctx.moveTo(ml + x, mt);
+          ctx.lineTo(ml + x, mt + usableH);
+          ctx.lineWidth = isMajor ? baseLineWidth * 2 : baseLineWidth;
+          ctx.stroke();
+        }
 
-      // Draw rows
-      for (let y = cellH, r = 1; y < usableH - 0.1; y += cellH, r++) {
-        const isMajor = grid.majorLineFrequency > 0 && r % grid.majorLineFrequency === 0;
-        ctx.beginPath();
-        ctx.moveTo(ml, mt + y);
-        ctx.lineTo(ml + usableW, mt + y);
-        ctx.lineWidth = isMajor ? baseLineWidth * 2 : baseLineWidth;
-        ctx.stroke();
+        // Draw rows
+        for (let y = cellH, r = 1; y < usableH - 0.1; y += cellH, r++) {
+          const isMajor = grid.majorLineFrequency > 0 && r % grid.majorLineFrequency === 0;
+          ctx.beginPath();
+          ctx.moveTo(ml, mt + y);
+          ctx.lineTo(ml + usableW, mt + y);
+          ctx.lineWidth = isMajor ? baseLineWidth * 2 : baseLineWidth;
+          ctx.stroke();
+        }
       }
       
       // Draw center lines
