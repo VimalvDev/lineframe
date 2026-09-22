@@ -30,6 +30,11 @@ export function drawSheet(
   if (imgEl && image.src && !options?.blankGrid) {
     ctx.save();
     
+    // Clip to paper bounds first to prevent image bleeding outside canvas
+    ctx.beginPath();
+    ctx.rect(0, 0, widthPx, heightPx);
+    ctx.clip();
+    
     // The image bounding box (crop box) in pixels
     const boxX = image.xMm * scale;
     const boxY = image.yMm * scale;
@@ -121,19 +126,23 @@ export function drawSheet(
     const usableH = usableHMm * scale;
     
     if (usableW > 0 && usableH > 0 && cellW > 0 && cellH > 0) {
-      // Draw the bounding box for the grid (if margins exist)
-      if (top > 0 || right > 0 || bottom > 0 || left > 0) {
-         ctx.beginPath();
-         ctx.rect(ml, mt, usableW, usableH);
-         ctx.stroke();
-      }
+      // Calculate actual dimensions that fit full cells
+      const cols = Math.floor(usableW / cellW + 0.01);
+      const rows = Math.floor(usableH / cellH + 0.01);
+      const drawnW = cols * cellW;
+      const drawnH = rows * cellH;
+
+      // Draw the bounding box for the grid area (only around actual cells)
+      ctx.beginPath();
+      ctx.rect(ml, mt, drawnW, drawnH);
+      ctx.stroke();
 
       // Draw columns & rows or intersections
       if (grid.style === 'intersections') {
         const crossSize = Math.max(4, baseLineWidth * 6);
         ctx.beginPath();
-        for (let x = cellW, c = 1; x < usableW - 0.1; x += cellW, c++) {
-          for (let y = cellH, r = 1; y < usableH - 0.1; y += cellH, r++) {
+        for (let x = cellW, c = 1; x < drawnW - 0.1; x += cellW, c++) {
+          for (let y = cellH, r = 1; y < drawnH - 0.1; y += cellH, r++) {
             const isMajor = grid.majorLineFrequency > 0 && (c % grid.majorLineFrequency === 0 || r % grid.majorLineFrequency === 0);
             const cx = ml + x;
             const cy = mt + y;
@@ -146,21 +155,21 @@ export function drawSheet(
         ctx.stroke();
       } else {
         // Draw columns
-        for (let x = cellW, c = 1; x < usableW - 0.1; x += cellW, c++) {
+        for (let x = cellW, c = 1; x < drawnW - 0.1; x += cellW, c++) {
           const isMajor = grid.majorLineFrequency > 0 && c % grid.majorLineFrequency === 0;
           ctx.beginPath();
           ctx.moveTo(ml + x, mt);
-          ctx.lineTo(ml + x, mt + usableH);
+          ctx.lineTo(ml + x, mt + drawnH);
           ctx.lineWidth = isMajor ? baseLineWidth * 2 : baseLineWidth;
           ctx.stroke();
         }
 
         // Draw rows
-        for (let y = cellH, r = 1; y < usableH - 0.1; y += cellH, r++) {
+        for (let y = cellH, r = 1; y < drawnH - 0.1; y += cellH, r++) {
           const isMajor = grid.majorLineFrequency > 0 && r % grid.majorLineFrequency === 0;
           ctx.beginPath();
           ctx.moveTo(ml, mt + y);
-          ctx.lineTo(ml + usableW, mt + y);
+          ctx.lineTo(ml + drawnW, mt + y);
           ctx.lineWidth = isMajor ? baseLineWidth * 2 : baseLineWidth;
           ctx.stroke();
         }

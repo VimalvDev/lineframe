@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { 
   Undo2, Redo2, Trash2, Upload, Download, Image as ImageIcon, Grid as GridIcon, 
-  File, SlidersHorizontal, Folder, Settings, ZoomIn, Printer, X, Link2,
+  File, SlidersHorizontal, Folder, Settings, ZoomIn, Printer, X, Link2, Link2Off, Check,
   RotateCcw, RotateCw, FlipHorizontal, FlipVertical, Copy
 } from 'lucide-react';
 import {
@@ -18,7 +18,9 @@ import {
   defaultGrid,
   defaultImage,
   type FitMode,
-  type Dpi
+  type Dpi,
+  type GridMode,
+  type Margins
 } from '@/store/useGridStore';
 import ViewportCanvas from '@/components/ViewportCanvas';
 import CanvasControls from '@/components/CanvasControls';
@@ -66,6 +68,7 @@ export default function Home() {
   const setPreset = useGridStore((s) => s.setPreset);
   const setOrientation = useGridStore((s) => s.setOrientation);
   const setMargins = useGridStore((s) => s.setMargins);
+  const setMarginLink = useGridStore((s) => s.setMarginLink);
   const setCustomPaper = useGridStore((s) => s.setCustomPaper);
   const saveCustomPreset = useGridStore((s) => s.saveCustomPreset);
   const setDpi = useGridStore((s) => s.setDpi);
@@ -422,19 +425,60 @@ export default function Home() {
                 Square cells
               </label>
 
-              <div className="pt-2 transition-colors">
-                <div className="text-[12px] text-[var(--color-text-muted)] uppercase tracking-widest font-semibold mb-1 transition-colors">Cell Size</div>
-                <div className="text-xl font-medium tracking-tight text-[var(--color-text-primary)] transition-colors">
-                  {formatUnit(cellWidthMm, measurementUnit, dpi)} <span className="text-[var(--color-text-muted)] font-normal mx-1 transition-colors">×</span> {formatUnit(cellHeightMm, measurementUnit, dpi)} <span className="text-xs text-[var(--color-text-muted)] ml-1 transition-colors">{measurementUnit}</span>
-                </div>
-                {grid.mode === 'size' && (
-                  <div className="text-[11px] text-[var(--color-text-muted)] mt-1 transition-colors">
-                    Fills ~{((widthMm - activePaper.margins.left - activePaper.margins.right) / cellWidthMm).toFixed(1)} × ~{((heightMm - activePaper.margins.top - activePaper.margins.bottom) / cellHeightMm).toFixed(1)} cells
+              <div className="pt-4 border-t border-[var(--color-panel-border)] transition-colors">
+                <div className="text-[11px] font-mono text-[var(--color-text-muted)] space-y-3">
+                  <div>
+                    <div className="font-semibold text-[var(--color-text-primary)]">PAPER</div>
+                    <div>{formatUnit(widthMm, measurementUnit, dpi)} × {formatUnit(heightMm, measurementUnit, dpi)}</div>
                   </div>
-                )}
-                {grid.mode === 'count' && grid.forceSquare && (
-                  <div className="text-[11px] text-[var(--color-text-muted)] mt-1 transition-colors">
-                    Unused vertical space: {formatUnit((heightMm - activePaper.margins.top - activePaper.margins.bottom) - (cellHeightMm * grid.rows), measurementUnit, dpi)} {measurementUnit}
+                  
+                  <div>
+                    <div className="font-semibold text-[var(--color-text-primary)] mb-1">MARGINS</div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div>Top {formatUnit(activePaper.margins.top, measurementUnit, dpi)}</div>
+                      <div>Bottom {formatUnit(activePaper.margins.bottom, measurementUnit, dpi)}</div>
+                      <div>Left {formatUnit(activePaper.margins.left, measurementUnit, dpi)}</div>
+                      <div>Right {formatUnit(activePaper.margins.right, measurementUnit, dpi)}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-[var(--color-text-primary)]">GRID AREA</div>
+                    <div>{formatUnit(gridAreaW, measurementUnit, dpi)} × {formatUnit(gridAreaH, measurementUnit, dpi)}</div>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-[var(--color-text-primary)]">GRID</div>
+                    <div>{Math.floor(gridAreaW / cellWidthMm)} × {Math.floor(gridAreaH / cellHeightMm)}</div>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-[var(--color-text-primary)]">CELL</div>
+                    <div>{formatUnit(cellWidthMm, measurementUnit, dpi)} × {formatUnit(cellHeightMm, measurementUnit, dpi)}</div>
+                  </div>
+                </div>
+
+                {grid.mode === 'size' && (remainderX > 0.1 || remainderY > 0.1) && (
+                  <div className="mt-4 p-2 bg-[var(--color-input)] rounded-[var(--radius-control)]">
+                    <div className="text-[11px] text-[var(--color-text-primary)] mb-2">
+                      Remaining space: {remainderX > 0.1 && `${formatUnit(remainderX, measurementUnit, dpi)} H`} {remainderX > 0.1 && remainderY > 0.1 && ' / '} {remainderY > 0.1 && `${formatUnit(remainderY, measurementUnit, dpi)} V`}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {remainderY > 0.1 && (
+                        <>
+                           <button onClick={() => balanceMargins('split-v')} className="px-2 py-1 bg-[var(--color-panel-bg)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[10px] text-[var(--color-text-primary)] transition-colors">Balance V</button>
+                           <button onClick={() => balanceMargins('top')} className="px-2 py-1 bg-[var(--color-panel-bg)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[10px] text-[var(--color-text-primary)] transition-colors">To Top</button>
+                           <button onClick={() => balanceMargins('bottom')} className="px-2 py-1 bg-[var(--color-panel-bg)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[10px] text-[var(--color-text-primary)] transition-colors">To Bottom</button>
+                        </>
+                      )}
+                      {remainderX > 0.1 && (
+                        <>
+                           <button onClick={() => balanceMargins('split-h')} className="px-2 py-1 bg-[var(--color-panel-bg)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[10px] text-[var(--color-text-primary)] transition-colors">Balance H</button>
+                           <button onClick={() => balanceMargins('left')} className="px-2 py-1 bg-[var(--color-panel-bg)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[10px] text-[var(--color-text-primary)] transition-colors">To Left</button>
+                           <button onClick={() => balanceMargins('right')} className="px-2 py-1 bg-[var(--color-panel-bg)] border border-[var(--color-panel-border-subtle)] hover:bg-[var(--color-app-surface-raised)] rounded-[var(--radius-button)] text-[10px] text-[var(--color-text-primary)] transition-colors">To Right</button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -622,39 +666,66 @@ export default function Home() {
             
             <div className="pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 transition-colors">
               <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors">Margins</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Top ({measurementUnit})</label>
-                  <UnitInput
-                    unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.top}
-                    onChangeMm={(v) => setMargins({ top: v })}
-                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
-                  />
+              <div className="flex flex-col gap-4">
+                
+                {/* Vertical Margins */}
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[12px] font-medium text-[var(--color-text-muted)] transition-colors">Top</label>
+                      <UnitInput
+                        unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.top}
+                        onChangeMm={(v) => setMargins({ top: v })}
+                        className="w-16 rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-right text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[12px] font-medium text-[var(--color-text-muted)] transition-colors">Bottom</label>
+                      <UnitInput
+                        unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.bottom}
+                        onChangeMm={(v) => setMargins({ bottom: v })}
+                        className="w-16 rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-right text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setMarginLink('vertical', !activePaper.marginLinkVertical)}
+                    className={`p-1.5 rounded-[var(--radius-control)] transition-colors ${activePaper.marginLinkVertical ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]'}`}
+                    title="Link Top and Bottom"
+                  >
+                    {activePaper.marginLinkVertical ? <Link2 className="w-3.5 h-3.5" /> : <Link2Off className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Bottom ({measurementUnit})</label>
-                  <UnitInput
-                    unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.bottom}
-                    onChangeMm={(v) => setMargins({ bottom: v })}
-                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
-                  />
+
+                {/* Horizontal Margins */}
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[12px] font-medium text-[var(--color-text-muted)] transition-colors">Left</label>
+                      <UnitInput
+                        unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.left}
+                        onChangeMm={(v) => setMargins({ left: v })}
+                        className="w-16 rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-right text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[12px] font-medium text-[var(--color-text-muted)] transition-colors">Right</label>
+                      <UnitInput
+                        unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.right}
+                        onChangeMm={(v) => setMargins({ right: v })}
+                        className="w-16 rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-right text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setMarginLink('horizontal', !activePaper.marginLinkHorizontal)}
+                    className={`p-1.5 rounded-[var(--radius-control)] transition-colors ${activePaper.marginLinkHorizontal ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]'}`}
+                    title="Link Left and Right"
+                  >
+                    {activePaper.marginLinkHorizontal ? <Link2 className="w-3.5 h-3.5" /> : <Link2Off className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Left ({measurementUnit})</label>
-                  <UnitInput
-                    unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.left}
-                    onChangeMm={(v) => setMargins({ left: v })}
-                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[12px] font-medium text-[var(--color-text-muted)]  transition-colors">Right ({measurementUnit})</label>
-                  <UnitInput
-                    unit={measurementUnit} dpi={dpi} min={0} valueMm={activePaper.margins.right}
-                    onChangeMm={(v) => setMargins({ right: v })}
-                    className="w-full rounded-[var(--radius-control)] bg-[var(--color-input)] border-transparent hover:border-[var(--color-input-border)] focus:border-[var(--color-input-border)] px-2 py-1 text-xs text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)] transition-colors"
-                  />
-                </div>
+
               </div>
             </div>
 
@@ -703,7 +774,7 @@ export default function Home() {
                         <input type="range" min="0" max="200" value={image.threshold} 
                           onPointerDown={() => useGridStore.temporal.getState().pause()}
                           onPointerUp={() => { useGridStore.temporal.getState().resume(); updateImage({}); }}
-                          onChange={(e) => updateImage({ threshold: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] cursor-ew-resize" />
+                          onChange={(e) => updateImage({ threshold: Number(e.target.value) })} className="w-full h-1 bg-[var(--color-input)] rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-text-primary)] [&::-webkit-slider-thumb]:rounded-full cursor-ew-resize transition-colors" />
                       </div>
                     </div>
                   )}
@@ -721,7 +792,7 @@ export default function Home() {
                         <input type="range" min="0" max="200" value={image.brightness} 
                           onPointerDown={() => useGridStore.temporal.getState().pause()}
                           onPointerUp={() => { useGridStore.temporal.getState().resume(); updateImage({}); }}
-                          onChange={(e) => updateImage({ brightness: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] cursor-ew-resize" />
+                          onChange={(e) => updateImage({ brightness: Number(e.target.value) })} className="w-full h-1 bg-[var(--color-input)] rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-text-primary)] [&::-webkit-slider-thumb]:rounded-full cursor-ew-resize transition-colors" />
                       </div>
                       
                       <div>
@@ -732,7 +803,7 @@ export default function Home() {
                         <input type="range" min="0" max="200" value={image.contrast} 
                           onPointerDown={() => useGridStore.temporal.getState().pause()}
                           onPointerUp={() => { useGridStore.temporal.getState().resume(); updateImage({}); }}
-                          onChange={(e) => updateImage({ contrast: Number(e.target.value) })} className="w-full accent-[var(--color-accent)] cursor-ew-resize" />
+                          onChange={(e) => updateImage({ contrast: Number(e.target.value) })} className="w-full h-1 bg-[var(--color-input)] rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[var(--color-text-primary)] [&::-webkit-slider-thumb]:rounded-full cursor-ew-resize transition-colors" />
                       </div>
                       
                       <div className="pt-2">
@@ -836,16 +907,54 @@ export default function Home() {
         );
       case 'settings':
         return (
-          <div className="flex h-full items-center justify-center text-center transition-colors">
-            <p className="text-xs text-neutral-600 max-w-[150px] transition-colors">
-              Settings coming soon.
-            </p>
+          <div className="p-5 flex flex-col gap-6">
+            <div>
+              <h3 className="text-[11px] font-semibold text-[var(--color-text-primary)] mb-3 transition-colors uppercase tracking-wider">Canvas Settings</h3>
+              
+              <div className="space-y-4">
+                <label className="flex items-center gap-3 group cursor-pointer">
+                  <div className={`w-4 h-4 rounded-[4px] border ${grid.showRulers !== false ? 'bg-blue-600 border-blue-600 text-white' : 'border-neutral-700 bg-transparent'} flex items-center justify-center transition-colors`}>
+                    {grid.showRulers !== false && <Check size={12} strokeWidth={3} />}
+                  </div>
+                  <span className="text-[11px] font-medium text-[var(--color-text-secondary)] group-hover:text-[var(--color-text-primary)] transition-colors">Show Rulers</span>
+                  <input
+                    type="checkbox"
+                    className="hidden"
+                    checked={grid.showRulers !== false}
+                    onChange={(e) => updateGrid({ showRulers: e.target.checked })}
+                  />
+                </label>
+              </div>
+            </div>
           </div>
         );
     }
   };
 
 
+  // Note: pW and pH are just widthMm and heightMm which are already declared above.
+  const gridAreaW = widthMm - activePaper.margins.left - activePaper.margins.right;
+  const gridAreaH = heightMm - activePaper.margins.top - activePaper.margins.bottom;
+
+  const remainderX = grid.mode === 'size' && cellWidthMm > 0 ? Math.max(0, gridAreaW - (Math.floor(gridAreaW / cellWidthMm) * cellWidthMm)) : 0;
+  const remainderY = grid.mode === 'size' && cellHeightMm > 0 ? Math.max(0, gridAreaH - (Math.floor(gridAreaH / cellHeightMm) * cellHeightMm)) : 0;
+
+  const balanceMargins = (direction: 'top' | 'bottom' | 'split-v' | 'left' | 'right' | 'split-h') => {
+    const patch: Partial<Margins> = {};
+    if (direction === 'top') patch.top = activePaper.margins.top + remainderY;
+    if (direction === 'bottom') patch.bottom = activePaper.margins.bottom + remainderY;
+    if (direction === 'split-v') {
+      patch.top = activePaper.margins.top + remainderY / 2;
+      patch.bottom = activePaper.margins.bottom + remainderY / 2;
+    }
+    if (direction === 'left') patch.left = activePaper.margins.left + remainderX;
+    if (direction === 'right') patch.right = activePaper.margins.right + remainderX;
+    if (direction === 'split-h') {
+      patch.left = activePaper.margins.left + remainderX / 2;
+      patch.right = activePaper.margins.right + remainderX / 2;
+    }
+    setMargins(patch);
+  };
 
   return (
     <div className="flex flex-col h-[100dvh] bg-neutral-950 text-neutral-200 overflow-hidden font-sans transition-colors">

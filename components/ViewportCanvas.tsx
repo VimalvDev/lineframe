@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useGridStore, getEffectivePaperDimensions, getCellSizeMm } from '@/store/useGridStore';
+import { useGridStore, getEffectivePaperDimensions, getCellSizeMm, getSnapLines } from '@/store/useGridStore';
 import { useViewportStore } from '@/store/useViewportStore';
 import { drawSheet } from '@/lib/renderCanvas';
 import { Upload } from 'lucide-react';
@@ -12,6 +12,7 @@ export default function ViewportCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>(0);
+  const pointerRef = useRef<{ x: number | null, y: number | null }>({ x: null, y: null });
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   
   // Image element caching
@@ -23,7 +24,7 @@ export default function ViewportCanvas() {
   const image = useGridStore((s) => s.image);
   const loadImageFile = useGridStore((s) => s.loadImageFile);
 
-  const { zoom, panX, panY } = useViewportStore();
+  const { zoom, panX, panY, isImageSelected } = useViewportStore();
 
   // Load image when src changes
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function ViewportCanvas() {
       }
 
       // Draw image selection bounding box + resize handles
-      if (image.src && imgElRef.current) {
+      if (image.src && imgElRef.current && isImageSelected) {
         const boxX = image.xMm * MM_TO_PX;
         const boxY = image.yMm * MM_TO_PX;
         const boxW = image.widthMm * MM_TO_PX;
@@ -159,15 +160,15 @@ export default function ViewportCanvas() {
     let lastClientY = 0;
     
     let isDraggingImage = false;
-    let isResizingImage = false;
-    let resizeHandleIndex = -1; // 0-7 for 8 handles (TL, TC, TR, MR, BR, BC, BL, ML)
-    let resizeStartImage = { xMm: 0, yMm: 0, widthMm: 0, heightMm: 0 };
-    let resizeStartClientX = 0;
-    let resizeStartClientY = 0;
-
     let dragStartClientX = 0;
     let dragStartClientY = 0;
-    let dragStartImage = { xMm: 0, yMm: 0, widthMm: 0, heightMm: 0 };
+    let dragStartImage = { ...useGridStore.getState().image };
+
+    let isResizingImage = false;
+    let resizeHandleIndex = -1;
+    let resizeStartClientX = 0;
+    let resizeStartClientY = 0;
+    let resizeStartImage = { ...useGridStore.getState().image };
 
     let initialTouchDistance = 0;
     let initialTouchMidX = 0;
@@ -197,6 +198,10 @@ export default function ViewportCanvas() {
       const rect = canvas.getBoundingClientRect();
       const cx = clientX - rect.left;
       const cy = clientY - rect.top;
+
+      const { widthMm, heightMm } = getEffectivePaperDimensions(state.activePaper, state.customPresets);
+      const { mmX, mmY } = clientToPaperMm(clientX, clientY);
+      if (mmX < 0 || mmX > widthMm || mmY < 0 || mmY > heightMm) return -1;
 
       const boxX = img.xMm * MM_TO_PX;
       const boxY = img.yMm * MM_TO_PX;
@@ -230,7 +235,12 @@ export default function ViewportCanvas() {
       const state = useGridStore.getState();
       const img = state.image;
       if (!img.src) return false;
+      
+      const { widthMm, heightMm } = getEffectivePaperDimensions(state.activePaper, state.customPresets);
       const { mmX, mmY } = clientToPaperMm(clientX, clientY);
+      
+      if (mmX < 0 || mmX > widthMm || mmY < 0 || mmY > heightMm) return false;
+      
       return mmX >= img.xMm && mmX <= img.xMm + img.widthMm && mmY >= img.yMm && mmY <= img.yMm + img.heightMm;
     };
 
@@ -277,9 +287,11 @@ export default function ViewportCanvas() {
       if (state.image.src) {
         const handleIdx = hitTestHandles(e.clientX, e.clientY);
         if (handleIdx >= 0) {
+          useViewportStore.getState().setIsImageSelected(true);
           isResizingImage = true;
           resizeHandleIndex = handleIdx;
           resizeStartImage = {
+            ...state.image,
             xMm: state.image.xMm,
             yMm: state.image.yMm,
             widthMm: state.image.widthMm,
@@ -294,25 +306,54 @@ export default function ViewportCanvas() {
 
         // Check if clicking inside image box → move image
         if (hitTestImageBox(e.clientX, e.clientY)) {
+          useViewportStore.getState().setIsImageSelected(true);
           isDraggingImage = true;
-          lastClientX = e.clientX;
-          lastClientY = e.clientY;
+          dragStartClientX = e.clientX;
+          dragStartClientY = e.clientY;
+          dragStartImage = { ...state.image };
           canvas.style.cursor = 'move';
           return;
         }
       }
-      if (interactionMode === 'move' && state.image.src) {
-        isDraggingImage = true;
-        dragStartClientX = e.clientX;
-        dragStartClientY = e.clientY;
-        dragStartImage = { ...state.image };
-        canvas.style.cursor = 'move';
-        return;
-      }
-      
+
+      // If we clicked outside handles and image box, deselect
+      useViewportStore.getState().setIsImageSelected(false);
     };
 
     const onPointerMove = (e: PointerEvent) => {
+      let { mmX, mmY } = clientToPaperMm(e.clientX, e.clientY);
+      
+      const gridState = useGridStore.getState();
+      if (!isDraggingImage && !isResizingImage && !isDragging && gridState.grid.snapToGrid) {
+         const { snapLinesX, snapLinesY } = getSnapLines(gridState.activePaper, gridState.customPresets, gridState.grid);
+         const snapRadiusMm = 2;
+         
+         let minDistanceX = snapRadiusMm;
+         let minDistanceY = snapRadiusMm;
+         let snapX = mmX;
+         let snapY = mmY;
+         
+         for (const lineX of snapLinesX) {
+            const dist = Math.abs(mmX - lineX);
+            if (dist < minDistanceX) {
+               minDistanceX = dist;
+               snapX = lineX;
+            }
+         }
+         for (const lineY of snapLinesY) {
+            const dist = Math.abs(mmY - lineY);
+            if (dist < minDistanceY) {
+               minDistanceY = dist;
+               snapY = lineY;
+            }
+         }
+         mmX = snapX;
+         mmY = snapY;
+      }
+      
+      pointerRef.current.x = mmX;
+      pointerRef.current.y = mmY;
+
       if (isDragging) {
         const dx = e.clientX - lastClientX;
         const dy = e.clientY - lastClientY;
@@ -321,11 +362,11 @@ export default function ViewportCanvas() {
         lastClientX = e.clientX;
         lastClientY = e.clientY;
       } else if (isResizingImage) {
-        const { zoom } = useViewportStore.getState();
-        const dxPx = e.clientX - resizeStartClientX;
-        const dyPx = e.clientY - resizeStartClientY;
-        const dxMm = (dxPx / zoom) / MM_TO_PX;
-        const dyMm = (dyPx / zoom) / MM_TO_PX;
+        const start = clientToPaperMm(resizeStartClientX, resizeStartClientY);
+        const current = clientToPaperMm(e.clientX, e.clientY);
+        
+        const dxMm = current.mmX - start.mmX;
+        const dyMm = current.mmY - start.mmY;
 
         const s = resizeStartImage;
         const aspect = s.widthMm / s.heightMm;
@@ -385,12 +426,11 @@ export default function ViewportCanvas() {
           xMm: newX, yMm: newY, widthMm: newW, heightMm: newH,
         });
       } else if (isDraggingImage) {
-        const dxPx = e.clientX - dragStartClientX;
-        const dyPx = e.clientY - dragStartClientY;
-        const { zoom } = useViewportStore.getState();
+        const start = clientToPaperMm(dragStartClientX, dragStartClientY);
+        const current = clientToPaperMm(e.clientX, e.clientY);
         
-        const dxMm = (dxPx / zoom) / MM_TO_PX;
-        const dyMm = (dyPx / zoom) / MM_TO_PX;
+        const dxMm = current.mmX - start.mmX;
+        const dyMm = current.mmY - start.mmY;
         
         const gridState = useGridStore.getState();
         const img = dragStartImage;
@@ -403,42 +443,12 @@ export default function ViewportCanvas() {
         const { snapToGrid, snapToPaper } = gridState.grid;
         if (snapToGrid || snapToPaper) {
           const snapRadiusMm = 2;
-          const { widthMm, heightMm } = getEffectivePaperDimensions(gridState.activePaper, gridState.customPresets);
-          const { top, right, bottom, left } = gridState.activePaper.margins;
+          const { snapLinesX, snapLinesY } = getSnapLines(gridState.activePaper, gridState.customPresets, gridState.grid);
           
           let snapTargetX: number | null = null;
           let snapTargetY: number | null = null;
           let minDistanceX = snapRadiusMm;
           let minDistanceY = snapRadiusMm;
-
-          const snapLinesX: number[] = [];
-          const snapLinesY: number[] = [];
-
-          if (snapToPaper) {
-             snapLinesX.push(0, widthMm / 2, widthMm);
-             snapLinesY.push(0, heightMm / 2, heightMm);
-          }
-
-          if (snapToGrid) {
-             const { cellWidthMm, cellHeightMm, usableW, usableH } = getCellSizeMm(gridState.activePaper, gridState.customPresets, gridState.grid);
-             
-             if (usableW > 0 && usableH > 0 && cellWidthMm > 0 && cellHeightMm > 0) {
-                snapLinesX.push(left, widthMm - right);
-                snapLinesY.push(top, heightMm - bottom);
-                
-                for (let x = cellWidthMm; x < usableW - 0.1; x += cellWidthMm) {
-                   snapLinesX.push(left + x);
-                }
-                for (let y = cellHeightMm; y < usableH - 0.1; y += cellHeightMm) {
-                   snapLinesY.push(top + y);
-                }
-                
-                if (gridState.grid.centerLines) {
-                   snapLinesX.push(left + usableW / 2);
-                   snapLinesY.push(top + usableH / 2);
-                }
-             }
-          }
           
           // Center of the bounding box
           const imgCenterX = newXMm + img.widthMm / 2;
@@ -572,8 +582,14 @@ export default function ViewportCanvas() {
     
     const onContextMenu = (e: MouseEvent) => e.preventDefault();
 
+    const onPointerLeave = () => {
+      pointerRef.current.x = null;
+      pointerRef.current.y = null;
+    };
+
     canvas.addEventListener('wheel', onWheel, { passive: false });
     canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointerleave', onPointerLeave);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('touchstart', onTouchStart, { passive: false });
@@ -585,6 +601,7 @@ export default function ViewportCanvas() {
     return () => {
       canvas.removeEventListener('wheel', onWheel);
       canvas.removeEventListener('pointerdown', onPointerDown);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('touchstart', onTouchStart);

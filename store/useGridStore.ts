@@ -39,6 +39,8 @@ export interface ActivePaperState {
   customName?: string;
   customWidthMm?: number;
   customHeightMm?: number;
+  marginLinkVertical?: boolean;
+  marginLinkHorizontal?: boolean;
 }
 
 export type Dpi = 72 | 150 | 300 | 600;
@@ -102,6 +104,7 @@ export interface GridConfig {
   centerLines: boolean;
   snapToGrid: boolean;
   snapToPaper: boolean;
+  showRulers: boolean;
 }
 
 export interface GridStore {
@@ -116,6 +119,7 @@ export interface GridStore {
   setPreset: (presetId: string) => void;
   setOrientation: (orientation: Orientation) => void;
   setMargins: (margins: Partial<Margins>) => void;
+  setMarginLink: (axis: 'vertical' | 'horizontal', linked: boolean) => void;
   setCustomPaper: (widthMm: number, heightMm: number, name?: string) => void;
   saveCustomPreset: (name: string) => void;
   removeCustomPreset: (id: string) => void;
@@ -200,6 +204,7 @@ export const defaultGrid: GridConfig = {
   centerLines: false,
   snapToGrid: false,
   snapToPaper: true,
+  showRulers: true,
 };
 
 export const defaultPaper: ActivePaperState = {
@@ -207,6 +212,8 @@ export const defaultPaper: ActivePaperState = {
   orientation: 'portrait',
   margins: { top: 0, right: 0, bottom: 0, left: 0 },
   isCustom: false,
+  marginLinkVertical: false,
+  marginLinkHorizontal: false,
 };
 
 export function getEffectivePaperDimensions(paper: ActivePaperState, presets: PaperSize[]) {
@@ -332,7 +339,34 @@ export const useGridStore = create<GridStore>()(
 
         setMargins: (margins) => {
           const { activePaper } = get();
-          set({ activePaper: { ...activePaper, margins: { ...activePaper.margins, ...margins } } });
+          let nextMargins = { ...activePaper.margins, ...margins };
+          
+          if (activePaper.marginLinkVertical) {
+            if (margins.top !== undefined && margins.bottom === undefined) nextMargins.bottom = margins.top;
+            if (margins.bottom !== undefined && margins.top === undefined) nextMargins.top = margins.bottom;
+          }
+          if (activePaper.marginLinkHorizontal) {
+            if (margins.left !== undefined && margins.right === undefined) nextMargins.right = margins.left;
+            if (margins.right !== undefined && margins.left === undefined) nextMargins.left = margins.right;
+          }
+          
+          set({ activePaper: { ...activePaper, margins: nextMargins } });
+        },
+
+        setMarginLink: (axis, linked) => {
+          const { activePaper } = get();
+          const patch: Partial<ActivePaperState> = {};
+          const nextMargins = { ...activePaper.margins };
+          
+          if (axis === 'vertical') {
+            patch.marginLinkVertical = linked;
+            if (linked) nextMargins.bottom = nextMargins.top;
+          } else {
+            patch.marginLinkHorizontal = linked;
+            if (linked) nextMargins.right = nextMargins.left;
+          }
+          
+          set({ activePaper: { ...activePaper, ...patch, margins: nextMargins } });
         },
 
         setCustomPaper: (widthMm, heightMm, name) => {
@@ -547,6 +581,42 @@ export function getCellSizeMm(paper: ActivePaperState, presets: PaperSize[], gri
     usableW,
     usableH
   };
+}
+
+export function getSnapLines(paper: ActivePaperState, presets: PaperSize[], grid: GridConfig) {
+  const { widthMm, heightMm } = getEffectivePaperDimensions(paper, presets);
+  const { top, right, bottom, left } = paper.margins;
+
+  const snapLinesX: number[] = [];
+  const snapLinesY: number[] = [];
+
+  if (grid.snapToPaper) {
+     snapLinesX.push(0, widthMm / 2, widthMm);
+     snapLinesY.push(0, heightMm / 2, heightMm);
+  }
+
+  if (grid.snapToGrid) {
+     const { cellWidthMm, cellHeightMm, usableW, usableH } = getCellSizeMm(paper, presets, grid);
+     
+     if (usableW > 0 && usableH > 0 && cellWidthMm > 0 && cellHeightMm > 0) {
+        snapLinesX.push(left, widthMm - right);
+        snapLinesY.push(top, heightMm - bottom);
+        
+        for (let x = cellWidthMm; x < usableW - 0.1; x += cellWidthMm) {
+           snapLinesX.push(left + x);
+        }
+        for (let y = cellHeightMm; y < usableH - 0.1; y += cellHeightMm) {
+           snapLinesY.push(top + y);
+        }
+        
+        if (grid.centerLines) {
+           snapLinesX.push(left + usableW / 2);
+           snapLinesY.push(top + usableH / 2);
+        }
+     }
+  }
+
+  return { snapLinesX, snapLinesY };
 }
 
 export function getCanvasPixelSize(paper: ActivePaperState, presets: PaperSize[], dpi: Dpi) {
